@@ -7,26 +7,35 @@
 <title>Meta Ads 2026 — HBW Zurich</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="meta-data.js"></script>
+<script src="meta-daily.js"></script>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f6f6f4;color:#1a1a19;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.5}
 .wrap{max-width:1180px;margin:0 auto;padding:24px 18px 60px}
 h1{font-size:22px;font-weight:600;margin:0 0 4px}
-.sub{color:#6b6b66;font-size:13px;margin-bottom:22px}
+.sub{color:#6b6b66;font-size:13px;margin-bottom:18px}
 .card{background:#fff;border:1px solid #e3e2dc;border-radius:12px;padding:16px 18px;margin-bottom:18px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:#fff;border:1px solid #e3e2dc;border-radius:12px;padding:12px 16px;margin-bottom:16px}
+.bar label{font-size:12px;color:#6b6b66}
+select,input{padding:6px 9px;border:1px solid #cfcec7;border-radius:7px;font-size:13px;background:#fff;color:#1a1a19;font-family:inherit}
+input[type=date]{width:145px}
+.rng{font-size:12px;color:#8a8a84;margin-left:auto}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}
 .kpi{background:#fff;border:1px solid #e3e2dc;border-radius:12px;padding:13px 15px}
 .kpi .l{font-size:11px;color:#6b6b66;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
 .kpi .v{font-size:21px;font-weight:600;letter-spacing:-.3px}
 .kpi .s{font-size:11px;color:#8a8a84;margin-top:2px}
+.up{color:#0f6e56;font-weight:600}
+.dn{color:#a32d2d;font-weight:600}
 .fh{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px}
-.fh h2{font-size:15px;font-weight:600;margin:0}
+.fh h2,.fh h3{font-size:15px;font-weight:600;margin:0}
 button{background:#fff;border:1px solid #cfcec7;border-radius:7px;padding:5px 11px;font-size:13px;cursor:pointer;margin-left:6px;color:#1a1a19}
 button:hover{background:#f0efea}
-.chips{display:flex;flex-wrap:wrap;gap:7px;max-height:210px;overflow:auto}
+.chips{display:flex;flex-wrap:wrap;gap:7px;max-height:200px;overflow:auto}
 .chip{display:flex;align-items:center;gap:7px;border:1px solid #dcdbd4;background:#fafaf8;border-radius:20px;padding:5px 13px 5px 10px;font-size:13px;cursor:pointer;user-select:none}
 .chip.on{background:#e6f1fb;border-color:#8fbbe8;color:#0c447c}
 .chip .d{width:9px;height:9px;border-radius:50%;background:#c9c8c1;flex:none}
+.chip.on .d{background:#2a78d6}
 .chip .m{color:#8a8a84;font-size:11px}
 .chip.on .m{color:#2a6cb5}
 h3{font-size:14px;font-weight:600;margin:0 0 10px;color:#3d3d3a}
@@ -35,9 +44,7 @@ h3{font-size:14px;font-weight:600;margin:0 0 10px;color:#3d3d3a}
 .s-t.on{background:#fff;color:#1a1a19;border-color:#b9b8b1}
 .s-t i{width:11px;height:11px;border-radius:2px;display:inline-block;opacity:.3}
 .s-t.on i{opacity:1}
-.mg{display:flex;align-items:center;gap:8px;font-size:13px;color:#6b6b66;flex-wrap:wrap}
-.mg input{width:64px;padding:4px 7px;border:1px solid #cfcec7;border-radius:6px;font-size:13px;text-align:right}
-.cw{position:relative;height:420px}
+.cw{position:relative;height:400px}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{text-align:right;font-weight:600;color:#6b6b66;padding:7px 6px;border-bottom:1px solid #e3e2dc;font-size:12px;white-space:nowrap;cursor:pointer}
 th:first-child,td:first-child{text-align:left}
@@ -46,30 +53,53 @@ tbody tr:hover{background:#faf9f6}
 .good{color:#0f6e56;font-weight:600}
 .bad{color:#a32d2d;font-weight:600}
 .note{font-size:12px;color:#8a8a84;margin-top:10px;line-height:1.6}
+.warn{font-size:12px;color:#854f0b;background:#faeeda;border-radius:7px;padding:7px 11px;margin-bottom:12px}
 .scroll{overflow-x:auto}
-@media(max-width:640px){.kpi .v{font-size:18px}.wrap{padding:16px 12px 40px}.cw{height:340px}}
+@media(max-width:640px){.kpi .v{font-size:18px}.wrap{padding:16px 12px 40px}.cw{height:320px}.rng{margin-left:0;width:100%}}
 </style>
 </head>
 <body>
 <div class="wrap">
-<h1>Meta Ads &mdash; Rendimiento semanal 2026</h1>
-<div class="sub">Cuenta HBW Zurich 2023 &middot; 1 ene &ndash; 13 sep 2026 &middot; Valores en CLP</div>
+<h1>Meta Ads &mdash; HBW Zurich 2023</h1>
+<div class="sub">Datos hasta el 13 de septiembre de 2026 &middot; Valores en CLP</div>
 
+<div class="bar">
+  <label for="preset">Per&iacute;odo</label>
+  <select id="preset">
+    <option value="7">&Uacute;ltimos 7 d&iacute;as</option>
+    <option value="14">&Uacute;ltimos 14 d&iacute;as</option>
+    <option value="28">&Uacute;ltimos 28 d&iacute;as</option>
+    <option value="30" selected>&Uacute;ltimos 30 d&iacute;as</option>
+    <option value="90">&Uacute;ltimos 90 d&iacute;as</option>
+    <option value="tm">Este mes</option>
+    <option value="lm">Mes pasado</option>
+    <option value="ty">Todo 2026</option>
+    <option value="cu">Personalizado</option>
+  </select>
+  <label for="f1">Desde</label><input type="date" id="f1" min="2026-01-01" max="2026-09-13">
+  <label for="f2">Hasta</label><input type="date" id="f2" min="2026-01-01" max="2026-09-13">
+  <label for="cmp">Comparar</label>
+  <select id="cmp">
+    <option value="none">Sin comparaci&oacute;n</option>
+    <option value="prev" selected>Per&iacute;odo anterior</option>
+  </select>
+  <label for="mg">Margen</label><input type="number" id="mg" min="1" max="99" step="1" value="60" style="width:60px;text-align:right">
+  <span class="rng" id="rng"></span>
+</div>
+
+<div id="fallback"></div>
 <div class="kpis" id="kpis"></div>
 
 <div class="card">
   <div class="fh">
-    <h2>Filtrar por campa&ntilde;a</h2>
-    <div><button id="all">Todas</button><button id="none">Ninguna</button><button id="top">Top 5 gasto</button></div>
+    <h2>Campa&ntilde;as</h2>
+    <div><button id="all">Todas</button><button id="none">Ninguna</button><button id="top">Top 5</button></div>
   </div>
   <div class="chips" id="chips"></div>
 </div>
 
 <div class="card">
-  <div class="fh">
-    <h3 style="margin:0">Vista combinada por semana</h3>
-    <div class="mg"><label for="mg">Margen bruto</label><input id="mg" type="number" min="1" max="99" step="1" value="60"><span>%</span><span id="be"></span></div>
-  </div>
+  <div class="fh"><h3>Vista combinada</h3><span class="rng" id="be"></span></div>
   <div class="series" id="series"></div>
   <div class="cw"><canvas id="cc"></canvas></div>
 </div>
@@ -80,35 +110,42 @@ tbody tr:hover{background:#faf9f6}
 </div>
 
 <div class="card">
-  <h3>Detalle semanal</h3>
-  <div class="scroll"><table id="tweek"></table></div>
-  <div class="note">Incluye las campa&ntilde;as con m&aacute;s de $120.000 de gasto acumulado en 2026 (92% del gasto de la cuenta). La &uacute;ltima semana (10&ndash;13 sep) es parcial. ROAS y valor de conversi&oacute;n usan atribuci&oacute;n de Meta (7 d&iacute;as clic / 1 d&iacute;a visualizaci&oacute;n) y no cuadran con la venta real de Shopify.</div>
+  <h3>Detalle</h3>
+  <div class="scroll"><table id="tdet"></table></div>
+  <div class="note">La serie diaria por campa&ntilde;a cubre del 16 de junio al 13 de septiembre de 2026. Los rangos que empiezan antes usan la serie semanal, que agrupa por semanas completas e incluye solo las campa&ntilde;as con m&aacute;s de $120.000 de gasto anual (92% del gasto de la cuenta). ROAS y valor de conversi&oacute;n usan atribuci&oacute;n de Meta (7 d&iacute;as clic / 1 d&iacute;a visualizaci&oacute;n) y no cuadran con la venta real de Shopify.</div>
 </div>
 </div>
 
 <script>
 const MES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
-const lab=DATA.weeks.map(w=>{const p=w.split("-");return parseInt(p[2],10)+" "+MES[parseInt(p[1],10)-1]});
 const nf=new Intl.NumberFormat("es-CL");
 const clp=v=>"$"+nf.format(Math.round(v));
 const COL={sp:"#2a78d6",va:"#1baf7a",ro:"#eb6834",ct:"#6250d6",cv:"#eda100"};
-const SER=[{k:"sp",n:"Gasto",on:true},{k:"va",n:"Valor conv.",on:true},{k:"ro",n:"ROAS",on:true},{k:"ct",n:"CTR",on:false},{k:"cv",n:"Conversión",on:false}];
+const SER=[{k:"sp",n:"Gasto",on:true},{k:"va",n:"Valor conv.",on:true},{k:"ro",n:"ROAS",on:true},{k:"ct",n:"CTR",on:false},{k:"cv",n:"Conversi\u00f3n",on:false}];
+const LAST="2026-09-13", FIRST="2026-01-01";
+const dstart=new Date(DAILY_START+"T00:00:00");
+const iso=d=>d.toISOString().slice(0,10);
+const parse=s=>new Date(s+"T00:00:00");
+const addD=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const fmt=s=>{const p=s.split("-");return parseInt(p[2],10)+" "+MES[parseInt(p[1],10)-1]};
+
 const totals=DATA.campaigns.map((n,i)=>({i:i,n:n,sp:0}));
 DATA.rows.forEach(r=>{totals[r[1]].sp+=r[2]});
-const order=totals.slice().sort((a,b)=>b.sp-a.sp);
-let sel=new Set(DATA.campaigns.map((n,i)=>i));
+DAILY.forEach(r=>{if(!totals[r[1]])totals[r[1]]={i:r[1],n:DATA.campaigns[r[1]]||("Campa\u00f1a "+r[1]),sp:0}});
+const order=totals.filter(Boolean).slice().sort((a,b)=>b.sp-a.sp);
+let sel=new Set(order.map(t=>t.i));
 let margin=60, sortKey="sp";
 
 const chips=document.getElementById("chips");
 order.forEach(t=>{
   const d=document.createElement("div");
   d.className="chip on";d.dataset.i=t.i;
-  d.innerHTML='<span class="d" style="background:#2a78d6"></span><span>'+t.n+'</span><span class="m">'+clp(t.sp)+'</span>';
+  d.innerHTML='<span class="d"></span><span>'+t.n+'</span><span class="m">'+clp(t.sp)+'</span>';
   d.onclick=()=>{sel.has(t.i)?(sel.delete(t.i),d.classList.remove("on")):(sel.add(t.i),d.classList.add("on"));render()};
   chips.appendChild(d);
 });
 function setSel(ids){sel=new Set(ids);[...chips.children].forEach(c=>c.classList.toggle("on",sel.has(+c.dataset.i)));render()}
-document.getElementById("all").onclick=()=>setSel(DATA.campaigns.map((n,i)=>i));
+document.getElementById("all").onclick=()=>setSel(order.map(t=>t.i));
 document.getElementById("none").onclick=()=>setSel([]);
 document.getElementById("top").onclick=()=>setSel(order.slice(0,5).map(t=>t.i));
 
@@ -120,56 +157,100 @@ SER.forEach(s=>{
   d.onclick=()=>{s.on=!s.on;d.classList.toggle("on",s.on);render()};
   sbox.appendChild(d);
 });
-document.getElementById("mg").oninput=e=>{const v=+e.target.value;if(v>0&&v<100){margin=v;render()}};
-
-let chart;
-function agg(){
-  const w=DATA.weeks.map(()=>({sp:0,va:0,im:0,cl:0,pu:0})),c={};
-  DATA.rows.forEach(r=>{
-    if(!sel.has(r[1]))return;
-    const a=w[r[0]];a.sp+=r[2];a.im+=r[3];a.cl+=r[4];a.va+=r[5];a.pu+=r[6];
-    const k=r[1];if(!c[k])c[k]={i:k,sp:0,va:0,im:0,cl:0,pu:0};
-    c[k].sp+=r[2];c[k].im+=r[3];c[k].cl+=r[4];c[k].va+=r[5];c[k].pu+=r[6];
-  });
-  return {w:w,c:Object.values(c)};
-}
-function kpi(l,v,s,cls){return '<div class="kpi"><div class="l">'+l+'</div><div class="v'+(cls?" "+cls:"")+'">'+v+'</div><div class="s">'+s+'</div></div>'}
 function on(k){return SER.find(s=>s.k===k).on}
 
+const elP=document.getElementById("preset"),el1=document.getElementById("f1"),el2=document.getElementById("f2");
+function applyPreset(){
+  const v=elP.value, end=parse(LAST);
+  let a,b=end;
+  if(v==="cu")return render();
+  if(v==="tm"){a=parse("2026-09-01")}
+  else if(v==="lm"){a=parse("2026-08-01");b=parse("2026-08-31")}
+  else if(v==="ty"){a=parse(FIRST)}
+  else{a=addD(end,-(parseInt(v,10)-1))}
+  el1.value=iso(a);el2.value=iso(b);render();
+}
+elP.onchange=applyPreset;
+el1.onchange=el2.onchange=()=>{elP.value="cu";render()};
+document.getElementById("cmp").onchange=render;
+document.getElementById("mg").oninput=e=>{const v=+e.target.value;if(v>0&&v<100){margin=v;render()}};
+
+function aggDaily(a,b){
+  const i0=Math.round((a-dstart)/864e5), i1=Math.round((b-dstart)/864e5);
+  const buckets=new Map(), camps=new Map();
+  for(let i=i0;i<=i1;i++)buckets.set(i,{k:iso(addD(dstart,i)),sp:0,va:0,im:0,cl:0,pu:0});
+  DAILY.forEach(r=>{
+    if(r[0]<i0||r[0]>i1||!sel.has(r[1]))return;
+    const o=buckets.get(r[0]);o.sp+=r[2];o.im+=r[3];o.cl+=r[4];o.va+=r[5];o.pu+=r[6];
+    if(!camps.has(r[1]))camps.set(r[1],{i:r[1],sp:0,va:0,im:0,cl:0,pu:0});
+    const c=camps.get(r[1]);c.sp+=r[2];c.im+=r[3];c.cl+=r[4];c.va+=r[5];c.pu+=r[6];
+  });
+  return {b:[...buckets.values()],c:[...camps.values()],unit:"d\u00eda"};
+}
+function aggWeekly(a,b){
+  const buckets=[],camps=new Map(),idx=[];
+  DATA.weeks.forEach((w,i)=>{const d=parse(w);if(d>=a&&d<=b){idx.push(i);buckets.push({k:w,sp:0,va:0,im:0,cl:0,pu:0})}});
+  const map=new Map(idx.map((v,j)=>[v,j]));
+  DATA.rows.forEach(r=>{
+    if(!map.has(r[0])||!sel.has(r[1]))return;
+    const o=buckets[map.get(r[0])];o.sp+=r[2];o.im+=r[3];o.cl+=r[4];o.va+=r[5];o.pu+=r[6];
+    if(!camps.has(r[1]))camps.set(r[1],{i:r[1],sp:0,va:0,im:0,cl:0,pu:0});
+    const c=camps.get(r[1]);c.sp+=r[2];c.im+=r[3];c.cl+=r[4];c.va+=r[5];c.pu+=r[6];
+  });
+  return {b:buckets,c:[...camps.values()],unit:"semana"};
+}
+const agg=(a,b)=>a>=dstart?aggDaily(a,b):aggWeekly(a,b);
+const sum=o=>o.b.reduce((x,y)=>({sp:x.sp+y.sp,va:x.va+y.va,im:x.im+y.im,cl:x.cl+y.cl,pu:x.pu+y.pu}),{sp:0,va:0,im:0,cl:0,pu:0});
+
+function delta(now,was){
+  if(!was||!isFinite(was)||was===0)return "";
+  const p=(now-was)/Math.abs(was)*100;
+  if(!isFinite(p))return "";
+  return ' <span class="'+(p>=0?"up":"dn")+'">'+(p>=0?"+":"")+p.toFixed(0)+'%</span>';
+}
+function kpi(l,v,s,cls){return '<div class="kpi"><div class="l">'+l+'</div><div class="v'+(cls?" "+cls:"")+'">'+v+'</div><div class="s">'+s+'</div></div>'}
+
+let chart;
 function render(){
-  const {w,c}=agg();
-  const T=w.reduce((a,x)=>({sp:a.sp+x.sp,va:a.va+x.va,im:a.im+x.im,cl:a.cl+x.cl,pu:a.pu+x.pu}),{sp:0,va:0,im:0,cl:0,pu:0});
-  const be=100/margin, contrib=T.va*margin/100-T.sp;
-  document.getElementById("be").textContent="→ ROAS de equilibrio "+be.toFixed(2)+"x";
-  document.getElementById("kpis").innerHTML=
-    kpi("Gasto",clp(T.sp),w.filter(x=>x.sp>0).length+" semanas")+
-    kpi("Valor conv.",clp(T.va),T.pu+" compras")+
-    kpi("ROAS",(T.sp?T.va/T.sp:0).toFixed(2)+"x","equilibrio "+be.toFixed(2)+"x",T.sp&&T.va/T.sp>=be?"good":"bad")+
-    kpi("Margen tras ads",clp(contrib),"con "+margin+"% de margen",contrib>=0?"good":"bad")+
-    kpi("Conversión",(T.cl?T.pu/T.cl*100:0).toFixed(3)+"%","compras / clics")+
-    kpi("CPA",T.pu?clp(T.sp/T.pu):"—","costo por compra")+
-    kpi("Ticket prom.",T.pu?clp(T.va/T.pu):"—","valor / compras")+
-    kpi("CTR",(T.im?T.cl/T.im*100:0).toFixed(2)+"%",nf.format(T.cl)+" clics")+
-    kpi("CPC",T.cl?clp(T.sp/T.cl):"—","costo por clic")+
-    kpi("CPM",T.im?clp(T.sp/T.im*1000):"—",nf.format(T.im)+" impresiones");
+  let a=parse(el1.value||"2026-08-15"), b=parse(el2.value||LAST);
+  if(a>b){const t=a;a=b;b=t}
+  const days=Math.round((b-a)/864e5)+1;
+  const cur=agg(a,b), T=sum(cur);
+  document.getElementById("rng").textContent=fmt(iso(a))+" \u2013 "+fmt(iso(b))+" \u00b7 "+days+" d\u00edas \u00b7 por "+cur.unit;
+  document.getElementById("fallback").innerHTML = a<dstart
+    ? '<div class="warn">Este rango empieza antes del 16 de junio, as\u00ed que usa la serie semanal: los totales cubren semanas completas y pueden desbordar los bordes del rango.</div>' : '';
 
-  const ds=[];
-  if(on("sp"))ds.push({type:"bar",label:"Gasto",yAxisID:"y",data:w.map(x=>x.sp),backgroundColor:COL.sp,borderRadius:3,maxBarThickness:10,order:5});
-  if(on("va"))ds.push({type:"bar",label:"Valor conv.",yAxisID:"y",data:w.map(x=>x.va),backgroundColor:COL.va,borderRadius:3,maxBarThickness:10,order:5});
-  if(on("ro")){
-    ds.push({type:"line",label:"ROAS",yAxisID:"y1",data:w.map(x=>x.sp?+(x.va/x.sp).toFixed(2):null),borderColor:COL.ro,backgroundColor:COL.ro,borderWidth:2,tension:.25,pointRadius:3,fill:false,spanGaps:true,order:1});
-    ds.push({type:"line",label:"Equilibrio",yAxisID:"y1",data:w.map(()=>+be.toFixed(2)),borderColor:"#b9b8b1",borderWidth:1,borderDash:[4,4],pointRadius:0,fill:false,order:2});
+  let P=null;
+  if(document.getElementById("cmp").value==="prev"){
+    const pb=addD(a,-1), pa=addD(pb,-(days-1));
+    if(pa>=parse(FIRST))P=sum(agg(pa,pb));
   }
-  if(on("ct"))ds.push({type:"line",label:"CTR",yAxisID:"y2",data:w.map(x=>x.im?+(x.cl/x.im*100).toFixed(2):null),borderColor:COL.ct,backgroundColor:COL.ct,borderWidth:2,borderDash:[6,3],tension:.25,pointRadius:3,pointStyle:"rect",fill:false,spanGaps:true,order:1});
-  if(on("cv"))ds.push({type:"line",label:"Conversión",yAxisID:"y3",data:w.map(x=>x.cl?+(x.pu/x.cl*100).toFixed(3):null),borderColor:COL.cv,backgroundColor:COL.cv,borderWidth:2,borderDash:[2,2],tension:.25,pointRadius:3,pointStyle:"triangle",fill:false,spanGaps:true,order:1});
+  const be=100/margin, contrib=T.va*margin/100-T.sp;
+  const roas=T.sp?T.va/T.sp:0, cvr=T.cl?T.pu/T.cl*100:0, ctr=T.im?T.cl/T.im*100:0;
+  document.getElementById("be").textContent="ROAS de equilibrio "+be.toFixed(2)+"x";
+  document.getElementById("kpis").innerHTML=
+    kpi("Gasto",clp(T.sp),P?"antes "+clp(P.sp)+delta(T.sp,P.sp):days+" d\u00edas")+
+    kpi("Valor conv.",clp(T.va),P?"antes "+clp(P.va)+delta(T.va,P.va):T.pu+" compras")+
+    kpi("ROAS",roas.toFixed(2)+"x",P&&P.sp?"antes "+(P.va/P.sp).toFixed(2)+"x"+delta(roas,P.va/P.sp):"equilibrio "+be.toFixed(2)+"x",roas>=be?"good":"bad")+
+    kpi("Margen tras ads",clp(contrib),"con "+margin+"% de margen",contrib>=0?"good":"bad")+
+    kpi("Compras",T.pu,P?"antes "+P.pu+delta(T.pu,P.pu):"\u2014")+
+    kpi("Conversi\u00f3n",cvr.toFixed(3)+"%",P&&P.cl?"antes "+(P.pu/P.cl*100).toFixed(3)+"%"+delta(cvr,P.pu/P.cl*100):"compras / clics")+
+    kpi("CPA",T.pu?clp(T.sp/T.pu):"\u2014",P&&P.pu?"antes "+clp(P.sp/P.pu)+delta(P.sp/P.pu,T.sp/T.pu):"costo por compra")+
+    kpi("Ticket prom.",T.pu?clp(T.va/T.pu):"\u2014","valor / compras")+
+    kpi("CTR",ctr.toFixed(2)+"%",P&&P.im?"antes "+(P.cl/P.im*100).toFixed(2)+"%"+delta(ctr,P.cl/P.im*100):nf.format(T.cl)+" clics")+
+    kpi("CPC",T.cl?clp(T.sp/T.cl):"\u2014",P&&P.cl?"antes "+clp(P.sp/P.cl)+delta(P.sp/P.cl,T.sp/T.cl):"costo por clic");
 
-  const ax={
-    x:{grid:{display:false},ticks:{font:{size:10},color:"#8a8a84",maxRotation:60,autoSkip:true,maxTicksLimit:14}},
-    y:{position:"left",display:on("sp")||on("va"),grid:{color:"#ececE6"},border:{display:false},title:{display:true,text:"CLP",color:"#8a8a84",font:{size:10}},ticks:{font:{size:10},color:"#8a8a84",callback:v=>"$"+nf.format(Math.round(v/1000))+"K"}},
-    y1:{position:"right",display:on("ro"),beginAtZero:true,grid:{display:false},border:{display:false},title:{display:true,text:"ROAS",color:COL.ro,font:{size:10}},ticks:{font:{size:10},color:COL.ro,callback:v=>v.toFixed(1)+"x"}},
-    y2:{position:"right",display:on("ct"),beginAtZero:true,grid:{display:false},border:{display:false},title:{display:true,text:"CTR",color:COL.ct,font:{size:10}},ticks:{font:{size:10},color:COL.ct,callback:v=>v.toFixed(1)+"%"}},
-    y3:{position:"right",display:on("cv"),beginAtZero:true,grid:{display:false},border:{display:false},title:{display:true,text:"Conv.",color:COL.cv,font:{size:10}},ticks:{font:{size:10},color:COL.cv,callback:v=>v.toFixed(2)+"%"}}
-  };
+  const lab=cur.b.map(x=>fmt(x.k));
+  const ds=[];
+  if(on("sp"))ds.push({type:"bar",label:"Gasto",yAxisID:"y",data:cur.b.map(x=>x.sp),backgroundColor:COL.sp,borderRadius:3,maxBarThickness:12,order:5});
+  if(on("va"))ds.push({type:"bar",label:"Valor conv.",yAxisID:"y",data:cur.b.map(x=>x.va),backgroundColor:COL.va,borderRadius:3,maxBarThickness:12,order:5});
+  if(on("ro")){
+    ds.push({type:"line",label:"ROAS",yAxisID:"y1",data:cur.b.map(x=>x.sp?+(x.va/x.sp).toFixed(2):null),borderColor:COL.ro,backgroundColor:COL.ro,borderWidth:2,tension:.25,pointRadius:days>45?0:3,fill:false,spanGaps:true,order:1});
+    ds.push({type:"line",label:"Equilibrio",yAxisID:"y1",data:cur.b.map(()=>+be.toFixed(2)),borderColor:"#b9b8b1",borderWidth:1,borderDash:[4,4],pointRadius:0,fill:false,order:2});
+  }
+  if(on("ct"))ds.push({type:"line",label:"CTR",yAxisID:"y2",data:cur.b.map(x=>x.im?+(x.cl/x.im*100).toFixed(2):null),borderColor:COL.ct,borderWidth:2,borderDash:[6,3],tension:.25,pointRadius:days>45?0:3,fill:false,spanGaps:true,order:1});
+  if(on("cv"))ds.push({type:"line",label:"Conversi\u00f3n",yAxisID:"y3",data:cur.b.map(x=>x.cl?+(x.pu/x.cl*100).toFixed(3):null),borderColor:COL.cv,borderWidth:2,borderDash:[2,2],tension:.25,pointRadius:days>45?0:3,fill:false,spanGaps:true,order:1});
+
   if(chart)chart.destroy();
   chart=new Chart(document.getElementById("cc"),{data:{labels:lab,datasets:ds},options:{
     responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
@@ -177,26 +258,31 @@ function render(){
       tooltip:{callbacks:{label:x=>{const l=x.dataset.label,v=x.parsed.y;
         if(l==="ROAS"||l==="Equilibrio")return l+": "+v.toFixed(2)+"x";
         if(l==="CTR")return "CTR: "+v.toFixed(2)+"%";
-        if(l==="Conversión")return "Conversión: "+v.toFixed(3)+"%";
+        if(l==="Conversi\u00f3n")return "Conversi\u00f3n: "+v.toFixed(3)+"%";
         return l+": "+clp(v)}}}},
-    scales:ax}});
+    scales:{
+      x:{grid:{display:false},ticks:{font:{size:10},color:"#8a8a84",maxRotation:60,autoSkip:true,maxTicksLimit:16}},
+      y:{position:"left",display:on("sp")||on("va"),grid:{color:"#ececE6"},border:{display:false},ticks:{font:{size:10},color:"#8a8a84",callback:v=>"$"+nf.format(Math.round(v/1000))+"K"}},
+      y1:{position:"right",display:on("ro"),beginAtZero:true,grid:{display:false},border:{display:false},ticks:{font:{size:10},color:COL.ro,callback:v=>v.toFixed(1)+"x"}},
+      y2:{position:"right",display:on("ct"),beginAtZero:true,grid:{display:false},border:{display:false},ticks:{font:{size:10},color:COL.ct,callback:v=>v.toFixed(1)+"%"}},
+      y3:{position:"right",display:on("cv"),beginAtZero:true,grid:{display:false},border:{display:false},ticks:{font:{size:10},color:COL.cv,callback:v=>v.toFixed(2)+"%"}}
+    }}});
 
-  const cols=[["n","Campaña"],["sp","Gasto"],["va","Valor conv."],["roas","ROAS"],["cvr","Conv."],["cpa","CPA"],["ticket","Ticket"],["ctr","CTR"],["cpc","CPC"],["pu","Compras"]];
-  const rows=c.map(x=>({n:DATA.campaigns[x.i],sp:x.sp,va:x.va,pu:x.pu,roas:x.sp?x.va/x.sp:0,cvr:x.cl?x.pu/x.cl*100:0,cpa:x.pu?x.sp/x.pu:0,ticket:x.pu?x.va/x.pu:0,ctr:x.im?x.cl/x.im*100:0,cpc:x.cl?x.sp/x.cl:0}));
-  rows.sort((a,b)=>sortKey==="n"?a.n.localeCompare(b.n):b[sortKey]-a[sortKey]);
+  const cols=[["n","Campa\u00f1a"],["sp","Gasto"],["va","Valor conv."],["roas","ROAS"],["cvr","Conv."],["cpa","CPA"],["ticket","Ticket"],["ctr","CTR"],["cpc","CPC"],["pu","Compras"]];
+  const rows=cur.c.map(x=>({n:DATA.campaigns[x.i]||("Campa\u00f1a "+x.i),sp:x.sp,va:x.va,pu:x.pu,roas:x.sp?x.va/x.sp:0,cvr:x.cl?x.pu/x.cl*100:0,cpa:x.pu?x.sp/x.pu:0,ticket:x.pu?x.va/x.pu:0,ctr:x.im?x.cl/x.im*100:0,cpc:x.cl?x.sp/x.cl:0}));
+  rows.sort((p,q)=>sortKey==="n"?p.n.localeCompare(q.n):q[sortKey]-p[sortKey]);
   let h='<thead><tr>'+cols.map(k=>'<th data-k="'+k[0]+'">'+k[1]+'</th>').join("")+'</tr></thead><tbody>';
-  rows.forEach(x=>{h+='<tr><td>'+x.n+'</td><td>'+clp(x.sp)+'</td><td>'+clp(x.va)+'</td><td class="'+(x.roas>=be?"good":"bad")+'">'+x.roas.toFixed(2)+'x</td><td>'+x.cvr.toFixed(3)+'%</td><td>'+(x.cpa?clp(x.cpa):"—")+'</td><td>'+(x.ticket?clp(x.ticket):"—")+'</td><td>'+x.ctr.toFixed(2)+'%</td><td>'+clp(x.cpc)+'</td><td>'+x.pu+'</td></tr>'});
-  if(!rows.length)h+='<tr><td colspan="10" style="text-align:center;color:#8a8a84;padding:20px">Sin campa&ntilde;as seleccionadas</td></tr>';
+  rows.forEach(x=>{h+='<tr><td>'+x.n+'</td><td>'+clp(x.sp)+'</td><td>'+clp(x.va)+'</td><td class="'+(x.roas>=be?"good":"bad")+'">'+x.roas.toFixed(2)+'x</td><td>'+x.cvr.toFixed(3)+'%</td><td>'+(x.cpa?clp(x.cpa):"\u2014")+'</td><td>'+(x.ticket?clp(x.ticket):"\u2014")+'</td><td>'+x.ctr.toFixed(2)+'%</td><td>'+clp(x.cpc)+'</td><td>'+x.pu+'</td></tr>'});
+  if(!rows.length)h+='<tr><td colspan="10" style="text-align:center;color:#8a8a84;padding:20px">Sin datos en este rango</td></tr>';
   const tr=document.getElementById("trank");tr.innerHTML=h+'</tbody>';
   tr.querySelectorAll("th").forEach(th=>th.onclick=()=>{sortKey=th.dataset.k;render()});
 
-  let t='<thead><tr><th>Semana</th><th>Gasto</th><th>Valor conv.</th><th>ROAS</th><th>Conv.</th><th>CTR</th><th>CPC</th><th>Compras</th></tr></thead><tbody>';
-  w.forEach((x,i)=>{if(!x.sp)return;const r=x.va/x.sp;
-    t+='<tr><td>'+lab[i]+'</td><td>'+clp(x.sp)+'</td><td>'+clp(x.va)+'</td><td class="'+(r>=be?"good":"bad")+'">'+r.toFixed(2)+'x</td><td>'+(x.cl?(x.pu/x.cl*100).toFixed(3):"0,000")+'%</td><td>'+(x.cl/x.im*100).toFixed(2)+'%</td><td>'+clp(x.sp/x.cl)+'</td><td>'+x.pu+'</td></tr>'});
-  if(!rows.length)t+='<tr><td colspan="8" style="text-align:center;color:#8a8a84;padding:20px">Sin datos</td></tr>';
-  document.getElementById("tweek").innerHTML=t+'</tbody>';
+  let t='<thead><tr><th>'+(cur.unit==="d\u00eda"?"D\u00eda":"Semana")+'</th><th>Gasto</th><th>Valor conv.</th><th>ROAS</th><th>Conv.</th><th>CTR</th><th>CPC</th><th>Compras</th></tr></thead><tbody>';
+  cur.b.slice().reverse().forEach(x=>{if(!x.sp&&!x.va)return;const r=x.sp?x.va/x.sp:0;
+    t+='<tr><td>'+fmt(x.k)+'</td><td>'+clp(x.sp)+'</td><td>'+clp(x.va)+'</td><td class="'+(r>=be?"good":"bad")+'">'+r.toFixed(2)+'x</td><td>'+(x.cl?(x.pu/x.cl*100).toFixed(3):"0,000")+'%</td><td>'+(x.im?(x.cl/x.im*100).toFixed(2):"0,00")+'%</td><td>'+(x.cl?clp(x.sp/x.cl):"\u2014")+'</td><td>'+x.pu+'</td></tr>'});
+  document.getElementById("tdet").innerHTML=t+'</tbody>';
 }
-render();
+applyPreset();
 </script>
 </body>
 </html>
