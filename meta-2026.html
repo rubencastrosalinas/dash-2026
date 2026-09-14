@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Meta Ads 2026 — HBW Zurich</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f6f6f4;color:#1a1a19;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 18px 60px}
+header{margin-bottom:22px}
+h1{font-size:22px;font-weight:600;margin:0 0 4px}
+.sub{color:#6b6b66;font-size:13px}
+.card{background:#fff;border:1px solid #e3e2dc;border-radius:12px;padding:16px 18px;margin-bottom:18px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:#fff;border:1px solid #e3e2dc;border-radius:12px;padding:14px 16px}
+.kpi .l{font-size:12px;color:#6b6b66;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
+.kpi .v{font-size:24px;font-weight:600;letter-spacing:-.4px}
+.kpi .s{font-size:12px;color:#8a8a84;margin-top:3px}
+.filterhead{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.filterhead h2{font-size:15px;font-weight:600;margin:0}
+.btns button{background:#fff;border:1px solid #cfcec7;border-radius:7px;padding:5px 11px;font-size:13px;cursor:pointer;margin-left:6px;color:#1a1a19}
+.btns button:hover{background:#f0efea}
+.chips{display:flex;flex-wrap:wrap;gap:7px;max-height:240px;overflow:auto}
+.chip{display:flex;align-items:center;gap:7px;border:1px solid #dcdbd4;background:#fafaf8;border-radius:20px;padding:5px 13px 5px 10px;font-size:13px;cursor:pointer;user-select:none}
+.chip.on{background:#e6f1fb;border-color:#8fbbe8;color:#0c447c}
+.chip .d{width:9px;height:9px;border-radius:50%;background:#c9c8c1;flex:none}
+.chip.on .d{background:#2a78d6}
+.chip .m{color:#8a8a84;font-size:11px}
+.chip.on .m{color:#2a6cb5}
+h3{font-size:14px;font-weight:600;margin:0 0 10px;color:#3d3d3a}
+.legend{display:flex;gap:16px;font-size:12px;color:#6b6b66;margin-bottom:10px;flex-wrap:wrap}
+.legend i{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:-1px}
+.cw{position:relative;height:280px}
+.cw.sm{height:220px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:right;font-weight:600;color:#6b6b66;padding:7px 6px;border-bottom:1px solid #e3e2dc;font-size:12px;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td{text-align:right;padding:7px 6px;border-bottom:1px solid #f0efea;white-space:nowrap}
+tbody tr:hover{background:#faf9f6}
+.good{color:#0f6e56;font-weight:600}
+.bad{color:#a32d2d;font-weight:600}
+.note{font-size:12px;color:#8a8a84;margin-top:10px;line-height:1.6}
+.scroll{overflow-x:auto}
+@media(max-width:640px){.kpi .v{font-size:20px}.wrap{padding:16px 12px 40px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Meta Ads &mdash; Rendimiento semanal 2026</h1>
+  <div class="sub">Cuenta HBW Zurich 2023 &middot; 1 ene &ndash; 13 sep 2026 &middot; Valores en CLP</div>
+</header>
+
+<div class="kpis" id="kpis"></div>
+
+<div class="card">
+  <div class="filterhead">
+    <h2>Filtrar por campa&ntilde;a</h2>
+    <div class="btns">
+      <button id="all">Todas</button>
+      <button id="none">Ninguna</button>
+      <button id="top">Top 5 gasto</button>
+    </div>
+  </div>
+  <div class="chips" id="chips"></div>
+</div>
+
+<div class="card">
+  <h3>Gasto y valor de conversi&oacute;n por semana</h3>
+  <div class="legend"><span><i style="background:#2a78d6"></i>Gasto</span><span><i style="background:#1baf7a"></i>Valor de conversi&oacute;n</span></div>
+  <div class="cw"><canvas id="c1"></canvas></div>
+</div>
+
+<div class="card">
+  <h3>ROAS por semana</h3>
+  <div class="legend"><span><i style="background:#eb6834"></i>ROAS</span><span><i style="background:#b9b8b1"></i>Referencia 2,00x</span></div>
+  <div class="cw sm"><canvas id="c2"></canvas></div>
+</div>
+
+<div class="card">
+  <h3>CTR por semana</h3>
+  <div class="cw sm"><canvas id="c3"></canvas></div>
+</div>
+
+<div class="card">
+  <h3>Ranking de campa&ntilde;as (selecci&oacute;n actual)</h3>
+  <div class="scroll"><table id="trank"></table></div>
+</div>
+
+<div class="card">
+  <h3>Detalle semanal</h3>
+  <div class="scroll"><table id="tweek"></table></div>
+  <div class="note">Incluye las campa&ntilde;as con m&aacute;s de $120.000 de gasto acumulado en 2026, que representan el 92% del gasto y el 93% del valor de conversi&oacute;n de la cuenta. La &uacute;ltima semana (10&ndash;13 sep) es parcial. ROAS y valor de conversi&oacute;n usan atribuci&oacute;n de Meta (7 d&iacute;as clic / 1 d&iacute;a visualizaci&oacute;n) y no cuadran con la venta real de Shopify.</div>
+</div>
+
+</div>
+<script>
+const DATA={"campaigns":["Tráfico Daytona/Speed B FEB 2025","SAM Tráfico ABR 2025","Ventas Royal Oak","North Edge Video colección JUN 2025","Ventas Royal Oak — Copia","Tráfico paganichile.cl JUL 2025","Catálogo Submariner Pagani AGO 2025","Venta catálogo Pagani OCT 2025","Ventas Nueva tienda Apumanque","Catálogo North Edge desde JUN 2021","Catálogo North Edge JUN 2021 — Copia","Catálogo North Edge ENE 2024","Advantage Video LAKER ENE 2024","Tráfico 14 FEB FRAN","Catálogo Daytona — Copia","Ventas ABR3","Ventas Tienda Providencia","Cyberday MAY 2026","Día del Padre JUN 2026","Ventas Daytona-Speedmaster","JULIO LLUVIAS","Nieve Apache","Black Week","Ventas Catálogo Pagani AGO 2026","SEP 2026 video Submariner"],"weeks":["2026-01-01","2026-01-08","2026-01-15","2026-01-22","2026-01-29","2026-02-05","2026-02-12","2026-02-19","2026-02-26","2026-03-05","2026-03-12","2026-03-19","2026-03-26","2026-04-02","2026-04-09","2026-04-16","2026-04-23","2026-04-30","2026-05-07","2026-05-14","2026-05-21","2026-05-28","2026-06-04","2026-06-11","2026-06-18","2026-06-25","2026-07-02","2026-07-09","2026-07-16","2026-07-23","2026-07-30","2026-08-06","2026-08-13","2026-08-20","2026-08-27","2026-09-03","2026-09-10"],"rows":[[0,0,20949,24699,2441,0,0],[0,1,17349,34651,2223,0,0],[0,2,42605,17095,1062,339500,6],[0,3,50496,29097,864,45990,1],[0,4,43649,62403,3567,0,0],[0,5,56201,73414,3182,0,0],[0,6,83263,37807,1643,553750,3],[0,7,68784,109692,3894,0,0],[0,8,87339,22615,1818,317520,3],[1,9,88146,54233,1039,229300,4],[1,10,138945,78017,1211,153750,3],[1,11,95051,41996,1364,0,0],[1,12,88434,44764,1553,48990,1],[1,0,20919,20197,2086,0,0],[1,1,17647,31392,2131,0,0],[1,2,49124,18549,1235,0,0],[1,3,48748,22527,756,63990,1],[1,4,42172,57394,3316,0,0],[1,5,55659,61804,2320,0,0],[1,6,83921,34372,1493,653520,4],[1,7,70949,96872,3532,0,0],[1,8,87630,22257,1511,584300,4],[2,9,70486,37790,761,172530,3],[2,10,2086,889,22,0,0],[2,11,78651,52989,1272,0,0],[2,12,55993,24363,834,39990,1],[2,0,21110,21044,2228,0,0],[2,1,17330,28708,1959,0,0],[2,2,48614,14075,953,0,0],[2,3,48955,21241,704,175540,2],[2,4,40558,58026,3185,0,0],[2,5,51398,58451,2390,0,0],[2,6,84333,32681,1530,737520,4],[2,7,68229,98174,3436,0,0],[2,8,86870,18632,1280,201520,4],[3,9,69435,36378,821,451290,5],[3,11,80829,52790,1400,0,0],[3,0,20931,23281,2233,0,0],[3,1,17542,26811,1892,0,0],[3,2,48849,14054,886,526530,2],[3,3,48697,21036,696,125980,2],[3,4,42510,70567,3537,0,0],[3,5,34151,43753,1803,0,0],[3,6,83899,28414,1251,969490,4],[3,7,71130,85864,3555,0,0],[3,8,88162,16508,1118,88760,2],[4,9,70680,39389,807,96760,2],[4,11,80617,49124,1337,0,0],[4,0,20878,21505,2201,0,0],[4,1,17366,36761,1965,0,0],[4,2,49110,15353,980,589720,6],[4,3,50127,23212,675,355740,4],[4,4,42480,35982,2878,0,0],[4,5,34822,49162,1932,0,0],[4,6,84937,30943,1309,1000280,6],[4,7,69663,81194,3633,0,0],[4,8,87579,16560,1224,398540,2],[5,9,42243,25365,457,270530,3],[5,11,46956,25614,718,43770,1],[5,13,57293,116372,7761,0,0],[5,0,21170,20125,2059,0,0],[5,1,17634,39767,2057,0,0],[5,2,48762,18355,1004,204520,3],[5,3,39799,19361,624,212740,4],[5,4,41212,30644,2406,0,0],[5,5,35050,48208,2449,0,0],[5,6,99147,33308,1442,367980,2],[5,7,69506,82660,3414,0,0],[5,8,87306,18130,1310,142540,2],[6,14,50669,19821,574,0,0],[6,13,132565,238786,14754,39990,1],[6,0,23056,19510,2113,0,0],[6,1,17541,46776,1857,0,0],[6,2,100240,49626,1965,129760,2],[6,3,57475,26566,824,657250,9],[6,4,46919,34434,2716,0,0],[6,5,11453,14121,698,0,0],[6,6,124601,38797,1650,388540,2],[6,7,77755,94838,3829,0,0],[6,8,112018,25671,1837,669060,6],[7,14,58559,21171,473,366750,2],[7,0,28172,26562,2766,0,0],[7,1,17340,26416,1813,0,0],[7,2,107321,38044,2064,334300,4],[7,3,85057,38854,1167,74980,2],[7,4,37933,33626,2489,0,0],[7,6,128354,38502,1583,955050,6],[7,7,109562,131286,5040,0,0],[7,8,126268,37075,2519,230530,3],[8,14,57696,17242,345,69770,1],[8,0,27704,22941,2443,0,0],[8,1,17544,25629,1639,0,0],[8,2,103828,36434,1585,347520,4],[8,3,82878,37487,1201,247300,4],[8,4,42441,41982,2682,0,0],[8,6,123070,32163,1219,394750,3],[8,7,106962,126917,4456,0,0],[8,8,125702,31325,1829,285530,3],[9,9,3160,1701,31,0,0],[9,14,43551,14975,451,355980,2],[9,0,23643,20964,2163,0,0],[9,1,15023,21664,1451,0,0],[9,2,89802,39730,1695,35990,1],[9,3,74605,39325,1302,117760,2],[9,4,36146,38474,2387,0,0],[9,6,105330,38120,1276,89770,1],[9,7,87581,94621,3615,0,0],[9,8,119186,30275,1711,73990,1],[10,9,92808,26187,608,0,0],[10,2,122561,44967,1899,85990,1],[10,3,95428,39304,1388,39990,1],[10,6,140163,38206,2085,845280,5],[10,8,133392,35436,1852,630520,4],[11,9,69977,17191,319,0,0],[11,2,102995,26456,1478,331960,3],[11,3,82680,32389,1173,222540,2],[11,6,211543,43971,2686,984342,6],[11,8,127652,27697,1838,390310,3],[12,9,70056,16319,377,0,0],[12,12,29581,9126,393,0,0],[12,2,105500,25001,1209,181530,3],[12,3,83032,27228,984,295730,5],[12,6,210224,43070,2549,1810780,7],[12,8,123243,28368,1751,71760,2],[13,9,69772,24445,622,73990,1],[13,12,100121,45897,1311,0,0],[13,2,102165,28977,1330,287750,3],[13,3,82933,31055,1222,0,0],[13,6,232687,62099,3603,1203260,7],[13,8,126965,39449,2358,224740,3],[14,9,42648,22856,544,53770,1],[14,12,65704,35218,841,0,0],[14,2,104150,22812,1320,69770,1],[14,3,86533,35101,1241,207020,4],[14,6,247703,60043,3576,767740,4],[14,8,127379,38491,2156,85980,2],[15,2,79708,16171,1009,219990,1],[15,3,100165,40815,1625,422930,6],[15,6,236997,48728,3196,306670,2],[15,8,99998,25435,1538,321740,3],[15,15,15272,3305,230,230596,2],[16,3,139791,55870,2024,190520,4],[16,6,219588,52105,3063,706060,6],[16,15,103382,25274,1897,43420,1],[16,16,86240,23295,1956,38678,1],[17,3,140290,74951,2541,329500,6],[17,6,285125,74196,3979,935070,5],[17,15,126588,33464,2163,256442,5],[17,16,149790,46984,3286,575664,4],[18,3,139900,51678,2303,298940,4],[18,6,259967,61331,3363,1255050,7],[18,15,132719,36854,2071,447680,5],[18,16,156598,58852,3224,374401,5],[19,3,141608,53570,2303,350280,6],[19,6,289608,71045,3824,2038110,10],[19,15,161822,45120,2508,263872,6],[19,16,160961,55323,3219,575693,8],[20,3,107011,43194,1583,296280,5],[20,6,180256,39007,2367,539530,3],[20,8,123226,23211,1816,0,0],[20,15,110753,29961,1691,268258,3],[20,16,126881,35002,2214,694644,7],[21,3,172166,49486,1933,359280,6],[21,6,242757,43107,2276,612740,4],[21,8,163135,21546,1519,265300,4],[21,15,185714,38307,2224,230422,6],[21,16,210159,48446,3078,255430,6],[21,17,296552,55733,2904,872930,6],[22,3,137057,63965,2097,265740,4],[22,6,232109,57405,2890,191770,1],[22,8,136024,26773,1578,204540,2],[22,15,172565,46288,2466,368736,6],[22,16,199436,56782,3399,267592,3],[22,17,4095,540,32,0,0],[22,18,5454,1066,84,0,0],[23,3,139342,62610,2052,412060,5],[23,6,252518,77044,2938,268760,2],[23,8,106921,24469,1361,188990,1],[23,15,173127,40311,2037,466300,5],[23,16,223727,84461,3938,494418,9],[23,18,34422,8983,481,0,0],[24,3,145060,60408,1981,364710,6],[24,6,242514,59019,2739,1443250,4],[24,8,100536,34597,1605,1362050,6],[24,15,180363,34790,1945,663717,4],[24,16,235364,78253,3446,186982,5],[24,18,95163,19183,1135,76146,2],[25,3,138355,62071,1855,129980,2],[25,6,196254,49286,2315,401520,4],[25,8,133447,40975,1995,40770,1],[25,15,185031,35902,1973,516108,7],[25,16,243736,75562,3697,126510,2],[25,19,196655,27968,1068,187240,2],[26,3,104157,44922,1322,287720,5],[26,6,128895,35563,1532,77770,1],[26,8,92250,58202,1397,203760,2],[26,15,145948,36128,1666,271591,4],[26,16,181124,60148,3181,210820,4],[26,19,238205,32230,1138,202995,1],[27,3,187520,72247,2501,187530,3],[27,6,211631,63723,2581,0,0],[27,8,200748,177393,3179,406760,2],[27,15,245322,47890,2592,215998,4],[27,16,271653,80487,4425,289694,6],[27,19,184038,26477,894,221980,1],[28,3,107782,41681,1675,403050,6],[28,6,16060,5181,296,42990,1],[28,8,18935,7727,349,0,0],[28,15,86337,14682,1141,161458,2],[28,16,223463,75519,4767,1229501,9],[28,19,35919,4154,173,0,0],[28,20,265978,50382,2626,829788,6],[29,3,138998,41559,1814,188770,1],[29,6,14806,3537,240,0,0],[29,8,13872,2443,173,0,0],[29,15,91358,14302,1113,435131,5],[29,16,241612,68403,4240,534085,6],[29,19,34808,3969,191,196406,1],[29,21,186770,50884,3240,346258,6],[29,22,5269,814,46,0,0],[30,3,106073,33999,1355,458720,5],[30,6,13498,3977,216,0,0],[30,8,34825,6210,407,39990,1],[30,15,146925,32681,2144,731345,6],[30,16,433087,164774,8741,370204,8],[30,19,56146,6729,276,186486,1],[30,22,134237,25454,1414,171378,2],[31,3,93446,30127,1247,307720,5],[31,6,7418,2362,138,0,0],[31,8,38412,6261,392,197990,1],[31,15,138901,34255,1942,141608,3],[31,16,353856,117612,6417,524540,12],[31,19,28435,3493,155,0,0],[31,23,18631,7214,298,0,0],[32,3,124342,40160,1932,381310,3],[32,23,209546,65358,3324,335750,3],[33,3,132359,38849,1675,506480,7],[33,6,5210,1193,77,0,0],[33,15,30009,8384,606,58300,1],[33,16,183276,58425,4214,373095,7],[33,23,182841,39629,2029,0,0],[34,3,161840,57173,2385,283950,5],[34,6,178336,50163,2549,277140,3],[34,15,112733,31925,2503,226166,1],[34,24,89135,18748,956,0,0],[35,3,102805,32420,1442,258531,3],[35,6,132377,34143,1706,377980,2],[35,24,85980,13845,656,82326,1],[36,3,67751,20987,1017,155970,3],[36,6,42554,10470,689,449760,2]]};
+const MES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const lab=DATA.weeks.map(w=>{const p=w.split("-");return parseInt(p[2],10)+" "+MES[parseInt(p[1],10)-1]});
+const nf=new Intl.NumberFormat("es-CL");
+const clp=v=>"$"+nf.format(Math.round(v));
+const totals=DATA.campaigns.map((n,i)=>({i:i,n:n,sp:0,va:0,im:0,cl:0,pu:0}));
+DATA.rows.forEach(r=>{const t=totals[r[1]];t.sp+=r[2];t.im+=r[3];t.cl+=r[4];t.va+=r[5];t.pu+=r[6]});
+const order=totals.slice().sort((a,b)=>b.sp-a.sp);
+let sel=new Set(DATA.campaigns.map((n,i)=>i));
+
+const chips=document.getElementById("chips");
+order.forEach(t=>{
+  const d=document.createElement("div");
+  d.className="chip on";d.dataset.i=t.i;
+  d.innerHTML='<span class="d"></span><span>'+t.n+'</span><span class="m">'+clp(t.sp)+'</span>';
+  d.onclick=()=>{if(sel.has(t.i)){sel.delete(t.i);d.classList.remove("on")}else{sel.add(t.i);d.classList.add("on")}render()};
+  chips.appendChild(d);
+});
+function setSel(ids){sel=new Set(ids);[...chips.children].forEach(c=>c.classList.toggle("on",sel.has(+c.dataset.i)));render()}
+document.getElementById("all").onclick=()=>setSel(DATA.campaigns.map((n,i)=>i));
+document.getElementById("none").onclick=()=>setSel([]);
+document.getElementById("top").onclick=()=>setSel(order.slice(0,5).map(t=>t.i));
+
+let ch1,ch2,ch3;
+function agg(){
+  const w=DATA.weeks.map(()=>({sp:0,va:0,im:0,cl:0,pu:0}));
+  const c={};
+  DATA.rows.forEach(r=>{
+    if(!sel.has(r[1]))return;
+    const a=w[r[0]];a.sp+=r[2];a.im+=r[3];a.cl+=r[4];a.va+=r[5];a.pu+=r[6];
+    const k=r[1];if(!c[k])c[k]={i:k,sp:0,va:0,im:0,cl:0,pu:0};
+    c[k].sp+=r[2];c[k].im+=r[3];c[k].cl+=r[4];c[k].va+=r[5];c[k].pu+=r[6];
+  });
+  return {w:w,c:Object.values(c).sort((a,b)=>b.sp-a.sp)};
+}
+function kpi(l,v,s){return '<div class="kpi"><div class="l">'+l+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div></div>'}
+function render(){
+  const {w,c}=agg();
+  const sp=w.reduce((a,x)=>a+x.sp,0),va=w.reduce((a,x)=>a+x.va,0);
+  const im=w.reduce((a,x)=>a+x.im,0),cl=w.reduce((a,x)=>a+x.cl,0),pu=w.reduce((a,x)=>a+x.pu,0);
+  const act=w.filter(x=>x.sp>0).length;
+  document.getElementById("kpis").innerHTML=
+    kpi("Gasto",clp(sp),act+" semanas con gasto")+
+    kpi("Valor de conversi&oacute;n",clp(va),pu+" compras")+
+    kpi("ROAS",(sp?va/sp:0).toFixed(2)+"x",pu?"CPA "+clp(sp/pu):"&mdash;")+
+    kpi("CTR",(im?cl/im*100:0).toFixed(2)+"%",nf.format(im)+" impresiones")+
+    kpi("Campa&ntilde;as",sel.size,"de "+DATA.campaigns.length+" seleccionadas");
+
+  const g=w.map(x=>Math.round(x.sp/1000)),v=w.map(x=>Math.round(x.va/1000));
+  const ro=w.map(x=>x.sp?+(x.va/x.sp).toFixed(2):null);
+  const ct=w.map(x=>x.im?+(x.cl/x.im*100).toFixed(2):null);
+  const opt=(fmt)=>({responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:fmt}}},
+    scales:{x:{grid:{display:false},ticks:{font:{size:10},color:"#8a8a84",maxRotation:60,autoSkip:true,maxTicksLimit:14}},
+    y:{grid:{color:"#ececE6"},border:{display:false},ticks:{font:{size:11},color:"#8a8a84"}}}});
+  if(ch1)ch1.destroy();
+  const o1=opt(x=>x.dataset.label+": $"+nf.format(x.parsed.y)+"K");
+  o1.scales.y.ticks.callback=x=>"$"+nf.format(x)+"K";
+  ch1=new Chart(document.getElementById("c1"),{type:"bar",data:{labels:lab,datasets:[
+    {label:"Gasto",data:g,backgroundColor:"#2a78d6",borderRadius:3,maxBarThickness:11},
+    {label:"Valor conv.",data:v,backgroundColor:"#1baf7a",borderRadius:3,maxBarThickness:11}]},options:o1});
+  if(ch2)ch2.destroy();
+  const o2=opt(x=>x.datasetIndex?"Referencia 2,00x":"ROAS: "+(x.parsed.y||0).toFixed(2)+"x");
+  o2.scales.y.beginAtZero=true;o2.scales.y.ticks.callback=x=>x.toFixed(1)+"x";
+  ch2=new Chart(document.getElementById("c2"),{type:"line",data:{labels:lab,datasets:[
+    {data:ro,borderColor:"#eb6834",backgroundColor:"rgba(235,104,52,.10)",borderWidth:2,fill:true,tension:.25,pointRadius:3,pointBackgroundColor:"#eb6834",spanGaps:true},
+    {data:lab.map(()=>2),borderColor:"#b9b8b1",borderWidth:1,borderDash:[4,4],pointRadius:0,fill:false}]},options:o2});
+  if(ch3)ch3.destroy();
+  const o3=opt(x=>"CTR: "+(x.parsed.y||0).toFixed(2)+"%");
+  o3.scales.y.ticks.callback=x=>x.toFixed(1)+"%";
+  ch3=new Chart(document.getElementById("c3"),{type:"line",data:{labels:lab,datasets:[
+    {data:ct,borderColor:"#6250d6",backgroundColor:"rgba(98,80,214,.10)",borderWidth:2,fill:true,tension:.25,pointRadius:3,pointBackgroundColor:"#6250d6",spanGaps:true}]},options:o3});
+
+  let h='<thead><tr><th>Campa&ntilde;a</th><th>Gasto</th><th>Valor conv.</th><th>ROAS</th><th>CTR</th><th>Compras</th><th>CPA</th></tr></thead><tbody>';
+  c.forEach(x=>{const r=x.sp?x.va/x.sp:0;
+    h+='<tr><td>'+DATA.campaigns[x.i]+'</td><td>'+clp(x.sp)+'</td><td>'+clp(x.va)+'</td><td class="'+(r>=3?"good":(r<1.5?"bad":""))+'">'+r.toFixed(2)+'x</td><td>'+(x.im?(x.cl/x.im*100).toFixed(2):"0,00")+'%</td><td>'+x.pu+'</td><td>'+(x.pu?clp(x.sp/x.pu):"&mdash;")+'</td></tr>'});
+  if(!c.length)h+='<tr><td colspan="7" style="text-align:center;color:#8a8a84;padding:20px">Sin campa&ntilde;as seleccionadas</td></tr>';
+  document.getElementById("trank").innerHTML=h+'</tbody>';
+
+  let t='<thead><tr><th>Semana</th><th>Gasto</th><th>Valor conv.</th><th>ROAS</th><th>CTR</th><th>Compras</th></tr></thead><tbody>';
+  w.forEach((x,i)=>{if(!x.sp)return;const r=x.va/x.sp;
+    t+='<tr><td>'+lab[i]+'</td><td>'+clp(x.sp)+'</td><td>'+clp(x.va)+'</td><td class="'+(r>=3?"good":(r<1.5?"bad":""))+'">'+r.toFixed(2)+'x</td><td>'+(x.cl/x.im*100).toFixed(2)+'%</td><td>'+x.pu+'</td></tr>'});
+  if(!c.length)t+='<tr><td colspan="6" style="text-align:center;color:#8a8a84;padding:20px">Sin datos</td></tr>';
+  document.getElementById("tweek").innerHTML=t+'</tbody>';
+}
+render();
+</script>
+</body>
+</html>
