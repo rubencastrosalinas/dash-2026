@@ -6,8 +6,6 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Meta Ads 2026 — HBW Zurich</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="meta-data.js"></script>
-<script src="meta-daily.js"></script>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f6f6f4;color:#1a1a19;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.5}
@@ -20,6 +18,8 @@ h1{font-size:22px;font-weight:600;margin:0 0 4px}
 select,input{padding:6px 9px;border:1px solid #cfcec7;border-radius:7px;font-size:13px;background:#fff;color:#1a1a19;font-family:inherit}
 input[type=date]{width:145px}
 .rng{font-size:12px;color:#8a8a84;margin-left:auto}
+#upd{background:#eef4fb;border-color:#a9c9ea;color:#0c447c;font-weight:500}
+#upd:disabled{opacity:.55;cursor:default}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}
 .kpi{background:#fff;border:1px solid #e3e2dc;border-radius:12px;padding:13px 15px}
 .kpi .l{font-size:11px;color:#6b6b66;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
@@ -54,6 +54,7 @@ tbody tr:hover{background:#faf9f6}
 .bad{color:#a32d2d;font-weight:600}
 .note{font-size:12px;color:#8a8a84;margin-top:10px;line-height:1.6}
 .warn{font-size:12px;color:#854f0b;background:#faeeda;border-radius:7px;padding:7px 11px;margin-bottom:12px}
+.err{font-size:12px;color:#8c2020;background:#fae3e3;border-radius:7px;padding:7px 11px;margin-bottom:12px}
 .scroll{overflow-x:auto}
 @media(max-width:640px){.kpi .v{font-size:18px}.wrap{padding:16px 12px 40px}.cw{height:320px}.rng{margin-left:0;width:100%}}
 </style>
@@ -61,7 +62,7 @@ tbody tr:hover{background:#faf9f6}
 <body>
 <div class="wrap">
 <h1>Meta Ads &mdash; HBW Zurich 2023</h1>
-<div class="sub">Datos hasta el 13 de septiembre de 2026 &middot; Valores en CLP</div>
+<div class="sub" id="sub">Cargando datos&hellip;</div>
 
 <div class="bar">
   <label for="preset">Per&iacute;odo</label>
@@ -76,18 +77,19 @@ tbody tr:hover{background:#faf9f6}
     <option value="ty">Todo 2026</option>
     <option value="cu">Personalizado</option>
   </select>
-  <label for="f1">Desde</label><input type="date" id="f1" min="2026-01-01" max="2026-09-13">
-  <label for="f2">Hasta</label><input type="date" id="f2" min="2026-01-01" max="2026-09-13">
+  <label for="f1">Desde</label><input type="date" id="f1" min="2026-01-01">
+  <label for="f2">Hasta</label><input type="date" id="f2" min="2026-01-01">
   <label for="cmp">Comparar</label>
   <select id="cmp">
     <option value="none">Sin comparaci&oacute;n</option>
     <option value="prev" selected>Per&iacute;odo anterior</option>
   </select>
   <label for="mg">Margen</label><input type="number" id="mg" min="1" max="99" step="1" value="60" style="width:60px;text-align:right">
+  <button id="upd" title="Vuelve a leer los datos publicados, sin cach&eacute;">Actualizar datos</button>
   <span class="rng" id="rng"></span>
 </div>
 
-<div id="fallback"></div>
+<div id="msg"></div>
 <div class="kpis" id="kpis"></div>
 
 <div class="card">
@@ -112,7 +114,7 @@ tbody tr:hover{background:#faf9f6}
 <div class="card">
   <h3>Detalle</h3>
   <div class="scroll"><table id="tdet"></table></div>
-  <div class="note">La serie diaria por campa&ntilde;a cubre del 16 de junio al 13 de septiembre de 2026. Los rangos que empiezan antes usan la serie semanal, que agrupa por semanas completas e incluye solo las campa&ntilde;as con m&aacute;s de $120.000 de gasto anual (92% del gasto de la cuenta). ROAS y valor de conversi&oacute;n usan atribuci&oacute;n de Meta (7 d&iacute;as clic / 1 d&iacute;a visualizaci&oacute;n) y no cuadran con la venta real de Shopify.</div>
+  <div class="note">La serie diaria por campa&ntilde;a cubre del 16 de junio al 13 de septiembre de 2026. Los rangos que empiezan antes usan la serie semanal, que agrupa por semanas completas e incluye solo las campa&ntilde;as con m&aacute;s de $120.000 de gasto anual (92% del gasto de la cuenta). ROAS y valor de conversi&oacute;n usan atribuci&oacute;n de Meta (7 d&iacute;as clic / 1 d&iacute;a visualizaci&oacute;n) y no cuadran con la venta real de Shopify. El bot&oacute;n "Actualizar datos" vuelve a leer los archivos publicados en GitHub sin usar cach&eacute;; no reconsulta Meta directamente.</div>
 </div>
 </div>
 
@@ -122,28 +124,53 @@ const nf=new Intl.NumberFormat("es-CL");
 const clp=v=>"$"+nf.format(Math.round(v));
 const COL={sp:"#2a78d6",va:"#1baf7a",ro:"#eb6834",ct:"#6250d6",cv:"#eda100"};
 const SER=[{k:"sp",n:"Gasto",on:true},{k:"va",n:"Valor conv.",on:true},{k:"ro",n:"ROAS",on:true},{k:"ct",n:"CTR",on:false},{k:"cv",n:"Conversi\u00f3n",on:false}];
-const LAST="2026-09-13", FIRST="2026-01-01";
-const dstart=new Date(DAILY_START+"T00:00:00");
+const FIRST="2026-01-01";
 const iso=d=>d.toISOString().slice(0,10);
 const parse=s=>new Date(s+"T00:00:00");
 const addD=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
 const fmt=s=>{const p=s.split("-");return parseInt(p[2],10)+" "+MES[parseInt(p[1],10)-1]};
 
-const totals=DATA.campaigns.map((n,i)=>({i:i,n:n,sp:0}));
-DATA.rows.forEach(r=>{totals[r[1]].sp+=r[2]});
-DAILY.forEach(r=>{if(!totals[r[1]])totals[r[1]]={i:r[1],n:DATA.campaigns[r[1]]||("Campa\u00f1a "+r[1]),sp:0}});
-const order=totals.filter(Boolean).slice().sort((a,b)=>b.sp-a.sp);
-let sel=new Set(order.map(t=>t.i));
-let margin=60, sortKey="sp";
+let DATA=null,DAILY=null,dstart=null,LAST=null,order=[],sel=new Set(),margin=60,sortKey="sp",chart=null;
 
-const chips=document.getElementById("chips");
-order.forEach(t=>{
-  const d=document.createElement("div");
-  d.className="chip on";d.dataset.i=t.i;
-  d.innerHTML='<span class="d"></span><span>'+t.n+'</span><span class="m">'+clp(t.sp)+'</span>';
-  d.onclick=()=>{sel.has(t.i)?(sel.delete(t.i),d.classList.remove("on")):(sel.add(t.i),d.classList.add("on"));render()};
-  chips.appendChild(d);
-});
+const elP=document.getElementById("preset"),el1=document.getElementById("f1"),el2=document.getElementById("f2");
+const chips=document.getElementById("chips"),msg=document.getElementById("msg"),btn=document.getElementById("upd");
+
+async function load(){
+  const bust="?t="+Date.now();
+  const [a,b]=await Promise.all([
+    fetch("meta-data.js"+bust,{cache:"no-store"}),
+    fetch("meta-daily.js"+bust,{cache:"no-store"})
+  ]);
+  if(!a.ok||!b.ok)throw new Error("No se pudieron leer los archivos de datos");
+  const lm=b.headers.get("last-modified")||a.headers.get("last-modified");
+  const src=(await a.text())+"\n"+(await b.text())+"\nreturn {DATA:DATA,DAILY:DAILY,DAILY_START:DAILY_START};";
+  const out=new Function(src)();
+  DATA=out.DATA;DAILY=out.DAILY;dstart=parse(out.DAILY_START);
+  LAST=DATA.weeks[DATA.weeks.length-1];
+  DAILY.forEach(r=>{const d=iso(addD(dstart,r[0]));if(d>LAST)LAST=d});
+  el1.max=LAST;el2.max=LAST;
+  const f=lm?new Date(lm):null;
+  document.getElementById("sub").innerHTML="Datos hasta el "+fmt(LAST)+" de 2026 &middot; Valores en CLP"+
+    (f?" &middot; publicado el "+f.toLocaleDateString("es-CL")+" a las "+f.toLocaleTimeString("es-CL",{hour:"2-digit",minute:"2-digit"}):"");
+}
+
+function buildChips(){
+  const totals=DATA.campaigns.map((n,i)=>({i:i,n:n,sp:0}));
+  DATA.rows.forEach(r=>{totals[r[1]].sp+=r[2]});
+  DAILY.forEach(r=>{if(!totals[r[1]])totals[r[1]]={i:r[1],n:DATA.campaigns[r[1]]||("Campa\u00f1a "+r[1]),sp:0}});
+  order=totals.filter(Boolean).sort((a,b)=>b.sp-a.sp);
+  const prev=sel.size?new Set(sel):null;
+  sel=new Set(order.filter(t=>!prev||prev.has(t.i)).map(t=>t.i));
+  if(!sel.size)sel=new Set(order.map(t=>t.i));
+  chips.innerHTML="";
+  order.forEach(t=>{
+    const d=document.createElement("div");
+    d.className="chip"+(sel.has(t.i)?" on":"");d.dataset.i=t.i;
+    d.innerHTML='<span class="d"></span><span>'+t.n+'</span><span class="m">'+clp(t.sp)+'</span>';
+    d.onclick=()=>{sel.has(t.i)?(sel.delete(t.i),d.classList.remove("on")):(sel.add(t.i),d.classList.add("on"));render()};
+    chips.appendChild(d);
+  });
+}
 function setSel(ids){sel=new Set(ids);[...chips.children].forEach(c=>c.classList.toggle("on",sel.has(+c.dataset.i)));render()}
 document.getElementById("all").onclick=()=>setSel(order.map(t=>t.i));
 document.getElementById("none").onclick=()=>setSel([]);
@@ -159,21 +186,33 @@ SER.forEach(s=>{
 });
 function on(k){return SER.find(s=>s.k===k).on}
 
-const elP=document.getElementById("preset"),el1=document.getElementById("f1"),el2=document.getElementById("f2");
 function applyPreset(){
   const v=elP.value, end=parse(LAST);
   let a,b=end;
   if(v==="cu")return render();
-  if(v==="tm"){a=parse("2026-09-01")}
-  else if(v==="lm"){a=parse("2026-08-01");b=parse("2026-08-31")}
+  if(v==="tm"){a=parse(LAST.slice(0,7)+"-01")}
+  else if(v==="lm"){const p=parse(LAST.slice(0,7)+"-01");b=addD(p,-1);a=parse(iso(b).slice(0,7)+"-01")}
   else if(v==="ty"){a=parse(FIRST)}
   else{a=addD(end,-(parseInt(v,10)-1))}
+  if(a<parse(FIRST))a=parse(FIRST);
   el1.value=iso(a);el2.value=iso(b);render();
 }
 elP.onchange=applyPreset;
 el1.onchange=el2.onchange=()=>{elP.value="cu";render()};
-document.getElementById("cmp").onchange=render;
+document.getElementById("cmp").onchange=()=>render();
 document.getElementById("mg").oninput=e=>{const v=+e.target.value;if(v>0&&v<100){margin=v;render()}};
+
+btn.onclick=async()=>{
+  btn.disabled=true;const t=btn.textContent;btn.textContent="Actualizando\u2026";
+  try{
+    await load();buildChips();applyPreset();
+    msg.innerHTML="";btn.textContent="Datos al d\u00eda";
+    setTimeout(()=>{btn.textContent=t;btn.disabled=false},1800);
+  }catch(e){
+    msg.innerHTML='<div class="err">No se pudieron actualizar los datos: '+e.message+'</div>';
+    btn.textContent=t;btn.disabled=false;
+  }
+};
 
 function aggDaily(a,b){
   const i0=Math.round((a-dstart)/864e5), i1=Math.round((b-dstart)/864e5);
@@ -210,15 +249,15 @@ function delta(now,was){
 }
 function kpi(l,v,s,cls){return '<div class="kpi"><div class="l">'+l+'</div><div class="v'+(cls?" "+cls:"")+'">'+v+'</div><div class="s">'+s+'</div></div>'}
 
-let chart;
 function render(){
-  let a=parse(el1.value||"2026-08-15"), b=parse(el2.value||LAST);
+  if(!DATA)return;
+  let a=parse(el1.value||FIRST), b=parse(el2.value||LAST);
   if(a>b){const t=a;a=b;b=t}
   const days=Math.round((b-a)/864e5)+1;
   const cur=agg(a,b), T=sum(cur);
   document.getElementById("rng").textContent=fmt(iso(a))+" \u2013 "+fmt(iso(b))+" \u00b7 "+days+" d\u00edas \u00b7 por "+cur.unit;
-  document.getElementById("fallback").innerHTML = a<dstart
-    ? '<div class="warn">Este rango empieza antes del 16 de junio, as\u00ed que usa la serie semanal: los totales cubren semanas completas y pueden desbordar los bordes del rango.</div>' : '';
+  if(!msg.querySelector(".err"))msg.innerHTML = a<dstart
+    ? '<div class="warn">Este rango empieza antes del '+fmt(iso(dstart))+', as\u00ed que usa la serie semanal: los totales cubren semanas completas y pueden desbordar los bordes del rango.</div>' : '';
 
   let P=null;
   if(document.getElementById("cmp").value==="prev"){
@@ -282,7 +321,11 @@ function render(){
     t+='<tr><td>'+fmt(x.k)+'</td><td>'+clp(x.sp)+'</td><td>'+clp(x.va)+'</td><td class="'+(r>=be?"good":"bad")+'">'+r.toFixed(2)+'x</td><td>'+(x.cl?(x.pu/x.cl*100).toFixed(3):"0,000")+'%</td><td>'+(x.im?(x.cl/x.im*100).toFixed(2):"0,00")+'%</td><td>'+(x.cl?clp(x.sp/x.cl):"\u2014")+'</td><td>'+x.pu+'</td></tr>'});
   document.getElementById("tdet").innerHTML=t+'</tbody>';
 }
-applyPreset();
+
+(async()=>{
+  try{await load();buildChips();applyPreset()}
+  catch(e){document.getElementById("msg").innerHTML='<div class="err">No se pudieron cargar los datos: '+e.message+'</div>'}
+})();
 </script>
 </body>
 </html>
