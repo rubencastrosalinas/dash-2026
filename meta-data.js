@@ -3,3 +3,8 @@ const DATA={"campaigns":["Tráfico Daytona/Speed B FEB 2025","SAM Tráfico ABR 2
 // La semana del 10 de septiembre se cerró con los días 14, 15 y 16 traídos de la serie diaria.
 DATA.rows[DATA.rows.length-2]=[36,3,108737,33313,1537,335870,4];
 DATA.rows[DATA.rows.length-1]=[36,6,72639,18486,1120,449760,2];
+
+// Semana del 17 de septiembre (parcial: 17, 18 y 19) y campaña nueva de tráfico a tienda.
+DATA.campaigns[26]="Tráfico tienda – Cupón Providencia";
+DATA.weeks.push("2026-09-17");
+DATA.rows.push([37,3,49013,20095,886,39990,1],[37,6,27527,8971,555,187990,1],[37,26,774,207,10,0,0]);
