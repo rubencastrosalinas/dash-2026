@@ -84,7 +84,7 @@ tbody tr:hover{background:#faf9f6}
     <option value="none">Sin comparaci&oacute;n</option>
     <option value="prev" selected>Per&iacute;odo anterior</option>
   </select>
-  <label for="mg">Margen</label><input type="number" id="mg" min="1" max="99" step="1" value="60" style="width:60px;text-align:right">
+  <label for="mg">Margen</label><input type="number" id="mg" min="1" max="99" step="1" value="45" style="width:60px;text-align:right">
   <button id="upd" title="Vuelve a leer los datos publicados, sin cach&eacute;">Actualizar datos</button>
   <span class="rng" id="rng"></span>
 </div>
@@ -130,7 +130,7 @@ const parse=s=>new Date(s+"T00:00:00");
 const addD=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
 const fmt=s=>{const p=s.split("-");return parseInt(p[2],10)+" "+MES[parseInt(p[1],10)-1]};
 
-let DATA=null,DAILY=null,dstart=null,LAST=null,order=[],sel=new Set(),margin=60,sortKey="sp",chart=null;
+let DATA=null,DAILY=null,dstart=null,LAST=null,order=[],sel=new Set(),margin=45,sortKey="sp",chart=null;
 
 const elP=document.getElementById("preset"),el1=document.getElementById("f1"),el2=document.getElementById("f2");
 const chips=document.getElementById("chips"),msg=document.getElementById("msg"),btn=document.getElementById("upd");
