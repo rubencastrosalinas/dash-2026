@@ -55,6 +55,38 @@
   .note.green{background:#08160f;border:1px solid #12351f;border-left:3px solid #34d399;color:#9fd4b4}
   .note strong{color:#e6e9ef}
   footer{color:#4d5563;font-size:11px;text-align:center;margin-top:28px;line-height:1.7}
+  /* ---- Panel de edición ---- */
+  .editbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .editbtn{cursor:pointer;background:#16304a;border:1px solid #3b82f6;color:#93c5fd;border-radius:999px;padding:7px 16px;font-size:12px;font-weight:600;transition:.15s}
+  .editbtn:hover{background:#1c3d5c}
+  .editbtn.ghost{background:#131824;border-color:#232a38;color:#9aa4b6}
+  .editbtn.ghost:hover{border-color:#3a4457;color:#c3cbd8}
+  .editbtn.danger{background:#1e1214;border-color:#5b2327;color:#f4a3a8}
+  .editbtn.danger:hover{background:#2a1518}
+  #editor{display:none}
+  #editor.open{display:block}
+  .editgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px 22px;margin-bottom:18px}
+  @media(max-width:720px){.editgrid{grid-template-columns:1fr}}
+  .fld{display:flex;flex-direction:column;gap:5px}
+  .fld label{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:#7d8698}
+  .fld input{background:#0a0e15;border:1px solid #242c3b;border-radius:8px;padding:8px 11px;color:#e6e9ef;font-size:13px;font-family:inherit}
+  .fld input:focus{outline:none;border-color:#3b82f6}
+  .etbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}
+  .etbl th{font-size:9.5px;padding:6px 6px}
+  .etbl td{padding:5px 6px;border-bottom:1px solid #171c26;text-align:right}
+  .etbl td:first-child,.etbl th:first-child{text-align:left}
+  .etbl input{width:100%;background:#0a0e15;border:1px solid #232a38;border-radius:6px;padding:5px 7px;color:#e6e9ef;font-size:12px;font-family:inherit;text-align:right;font-variant-numeric:tabular-nums}
+  .etbl input.txt{text-align:left}
+  .etbl input:focus{outline:none;border-color:#3b82f6}
+  .etbl input.name{min-width:150px}
+  .swatch{width:22px;height:26px;padding:0;border:1px solid #242c3b;border-radius:6px;background:none;cursor:pointer}
+  .rmrow{cursor:pointer;background:none;border:none;color:#f87171;font-size:16px;line-height:1;padding:0 4px}
+  .rmrow:hover{color:#ff6b73}
+  .ehint{font-size:11.5px;color:#7d8698;margin:2px 0 14px;line-height:1.55}
+  .etblwrap{overflow-x:auto;margin-bottom:16px}
+  .editactions{display:flex;gap:9px;flex-wrap:wrap;align-items:center;border-top:1px solid #1e2431;padding-top:16px}
+  .savedmsg{font-size:11.5px;color:#34d399;opacity:0;transition:.3s}
+  .savedmsg.show{opacity:1}
 </style>
 </head>
 <body>
@@ -63,15 +95,54 @@
 <header>
   <div>
     <h1>Google Ads · Torre de Control</h1>
-    <div class="sub">Pagani Chile · cuenta 360-979-2248 · desde siempre · 29 jun — 22 sept 2026</div>
+    <div class="sub" id="subLine">Pagani Chile · cuenta 360-979-2248</div>
   </div>
-  <div class="pill" id="rangePill">Datos: rango de vida de la cuenta</div>
+  <div class="editbar">
+    <div class="pill" id="rangePill">Rango</div>
+    <button class="editbtn" id="toggleEdit">✎ Editar datos</button>
+  </div>
 </header>
 
 <div class="nav">
   <a href="index.html">← Torre de Control</a>
   <a href="meta-2026.html">Meta Ads</a>
   <a href="google-2026.html" class="on">Google Ads</a>
+</div>
+
+<!-- ============ PANEL DE EDICIÓN ============ -->
+<div class="panel" id="editor">
+  <h2>Editar datos del dashboard</h2>
+  <div class="h">Cambia lo que necesites y presiona <b>Aplicar</b>. Todo se recalcula solo (KPIs, gráficos, tabla y diagnóstico). Los cambios quedan guardados en este navegador.</div>
+
+  <div class="editgrid">
+    <div class="fld"><label>Cuenta</label><input id="e_cuenta" type="text"></div>
+    <div class="fld"><label>Etiqueta del rango (título)</label><input id="e_rangoLabel" type="text" placeholder="p. ej. Desde siempre"></div>
+    <div class="fld"><label>Fecha desde</label><input id="e_desde" type="date"></div>
+    <div class="fld"><label>Fecha hasta</label><input id="e_hasta" type="date"></div>
+  </div>
+
+  <div class="ehint">
+    <b>Campañas.</b> Edita cualquier celda. El presupuesto es diario. El CTR, el coste/conversión y el ROAS se calculan automáticamente, no se editan aquí.
+    Usa el cuadrito de color para cambiar el color de cada campaña. La <b>✕</b> elimina la fila; <b>+ Agregar campaña</b> añade una nueva.
+  </div>
+
+  <div class="etblwrap">
+    <table class="etbl">
+      <thead><tr>
+        <th></th><th>Campaña</th><th>Tipo</th><th>Presup./día</th><th>Coste</th><th>Impresiones</th><th>Clics</th><th>Conv.</th><th>Valor conv.</th><th></th>
+      </tr></thead>
+      <tbody id="editRows"></tbody>
+    </table>
+  </div>
+
+  <button class="editbtn ghost" id="addRow">+ Agregar campaña</button>
+
+  <div class="editactions">
+    <button class="editbtn" id="applyBtn">Aplicar cambios</button>
+    <button class="editbtn ghost" id="revertBtn">Restaurar valores originales</button>
+    <button class="editbtn danger" id="closeBtn">Cerrar</button>
+    <span class="savedmsg" id="savedMsg">✓ Cambios aplicados y guardados</span>
+  </div>
 </div>
 
 <div class="kpis" id="kpis"></div>
@@ -90,7 +161,7 @@
   </div>
   <div class="panel">
     <h2>Reparto del presupuesto diario</h2>
-    <div class="h">Cómo se distribuye hoy el gasto diario entre las 5 campañas. Total $34.373/día ≈ $1,03M/mes.</div>
+    <div class="h" id="budgetHint">Cómo se distribuye hoy el gasto diario entre las campañas.</div>
     <div class="cbox"><canvas id="budgetPie"></canvas></div>
   </div>
 </div>
@@ -127,18 +198,14 @@
   <div class="note blue" id="diagNext"></div>
 </div>
 
-<footer>
-  Datos extraídos de Google Ads (cuenta 360-979-2248) · Rango "Desde siempre": 29 jun — 22 sept 2026 · Valor de conversión con previsiones pendientes de Google.<br>
-  Actualizado manualmente el 23 sept 2026. Para refrescar: reemplazar el objeto <code>DATA</code> en el código con los nuevos totales de la vista de Campañas.
-</footer>
+<footer id="footer"></footer>
 </div>
 
 <script>
-// ============ DATOS (editar aquí para actualizar) ============
+// ============ DATOS ORIGINALES (respaldo para "Restaurar") ============
 // Rango: "Desde siempre" 29 jun – 22 sept 2026. Fuente: vista Campañas, Google Ads.
-const META = { cuenta:"360-979-2248", rango:"29 jun — 22 sept 2026", presupuestoDia:34373 };
-
-const DATA = [
+const DEFAULT_META = { cuenta:"360-979-2248", rangoLabel:"Desde siempre", desde:"2026-06-29", hasta:"2026-09-22" };
+const DEFAULT_DATA = [
   { name:"Campaign #1", tipo:"Performance Max", color:"#60a5fa", budget:11000,
     cost:539665, impressions:362818, clicks:5977, conv:13.87, value:982762 },
   { name:"Search · Marca Pagani", tipo:"Búsqueda", color:"#34d399", budget:6250,
@@ -150,33 +217,35 @@ const DATA = [
   { name:"Search · Genérica Hombre", tipo:"Búsqueda", color:"#fb923c", budget:8000,
     cost:130075, impressions:8320, clicks:353, conv:1.00, value:99990 }
 ];
-// =============================================================
+const PALETTE = ["#60a5fa","#34d399","#c084fc","#fbbf24","#fb923c","#f87171","#22d3ee","#a78bfa","#f472b6","#4ade80"];
+const STORE_KEY = "paganiGoogleDash_v2";
 
+// ---------- Estado (cargado de localStorage si existe) ----------
+let META, DATA;
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw){ const s = JSON.parse(raw); META = s.META; DATA = s.DATA; return; }
+  }catch(e){}
+  META = JSON.parse(JSON.stringify(DEFAULT_META));
+  DATA = JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+function saveState(){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify({META,DATA})); }catch(e){}
+}
+loadState();
+
+// ---------- Helpers ----------
 const clp = n => "$"+Math.round(n).toLocaleString("es-CL");
 const kM  = v => v>=1000000 ? "$"+(v/1000000).toFixed(1)+"M" : "$"+Math.round(v/1000)+"k";
 const pct = (n,d) => d? (n/d*100) : 0;
-
-const T = DATA.reduce((a,c)=>({
-  cost:a.cost+c.cost, impressions:a.impressions+c.impressions, clicks:a.clicks+c.clicks,
-  conv:a.conv+c.conv, value:a.value+c.value, budget:a.budget+c.budget
-}),{cost:0,impressions:0,clicks:0,conv:0,value:0,budget:0});
-
 const roas = (v,c)=> c? v/c : 0;
 const ctrOf = (cl,im)=> im? cl/im*100 : 0;
+const fmtFecha = iso => { if(!iso) return ""; const [y,m,d]=iso.split("-"); const mes=["ene","feb","mar","abr","may","jun","jul","ago","sept","oct","nov","dic"]; return d.replace(/^0/,"")+" "+mes[+m-1]+" "+y; };
+const rangoTxt = () => fmtFecha(META.desde)+" — "+fmtFecha(META.hasta);
 
-// ---------- KPIs ----------
-document.getElementById("rangePill").textContent = "Rango: "+META.rango;
-document.getElementById("kpis").innerHTML = [
-  ["Coste total", clp(T.cost), "o", clp(T.budget)+" /día presupuestado"],
-  ["Valor de conversión", clp(T.value), "b", "ventas atribuidas"],
-  ["ROAS global", roas(T.value,T.cost).toFixed(2)+"x", roas(T.value,T.cost)>=2.5?"g":roas(T.value,T.cost)>=1.5?"o":"r", "equilibrio ≈ 2,5x"],
-  ["Conversiones", T.conv.toFixed(0), "p", (T.conv/DATA.length).toFixed(1)+" prom. por campaña"],
-  ["Coste por venta", clp(T.cost/T.conv), "", "CPA de la cuenta"],
-  ["Clics", T.clicks.toLocaleString("es-CL"), "", ctrOf(T.clicks,T.impressions).toFixed(2)+"% CTR"],
-  ["Contribución neta", clp(T.value-T.cost), (T.value-T.cost)>0?"g":"r", "sin costo de producto"]
-].map(([l,v,c,n])=>`<div class="kpi"><div class="l">${l}</div><div class="v ${c||""}">${v}</div><div class="n">${n}</div></div>`).join("");
+let charts = {}; // guarda instancias Chart para destruirlas al redibujar
 
-// ---------- Tarjetas por campaña ----------
 function lectura(c){
   const r = roas(c.value,c.cost);
   if(c.conv < 1) return {cls:"nd", col:"#9ca3af", tag:"t-nd", txt:"Sin conversiones aún"};
@@ -184,166 +253,319 @@ function lectura(c){
   if(r >= 1.5)   return {cls:"warn", col:"#f59e0b", tag:"t-obs", txt:"Observar"};
   return {cls:"over", col:"#f87171", tag:"t-cut", txt:"Corregir o bajar"};
 }
-document.getElementById("spendCards").innerHTML = DATA.map(c=>{
-  const r = roas(c.value,c.cost);
-  const lec = lectura(c);
-  const share = pct(c.cost,T.cost);
-  return `<div class="sc ${lec.cls}">
-    <div class="t">${c.name}</div>
-    <div class="m" style="color:${lec.col}">${c.conv<1?"—":r.toFixed(2)+"x"} <span style="font-size:12px;color:#7d8698;font-weight:500">ROAS</span></div>
-    <div class="bar"><i style="width:${Math.min(share,100)}%;background:${c.color}"></i></div>
-    <div class="row"><span>Coste</span><b>${clp(c.cost)}</b></div>
-    <div class="row"><span>Valor conv.</span><b>${clp(c.value)}</b></div>
-    <div class="row"><span>Conversiones</span><b>${c.conv.toFixed(c.conv%1?2:0)}</b></div>
-    <div class="row"><span>CTR</span><b>${ctrOf(c.clicks,c.impressions).toFixed(2)}%</b></div>
-    <div class="row"><span>Estado</span><b><span class="tag ${lec.tag}">${lec.txt}</span></b></div>
-  </div>`;
-}).join("");
 
-// ---------- Gasto vs valor ----------
-new Chart(document.getElementById("spendValue"),{
-  type:"bar",
-  data:{labels:DATA.map(c=>c.name.replace("Search · ","").replace("DemandGen · ","")),
-    datasets:[
-      {label:"Coste",data:DATA.map(c=>c.cost),backgroundColor:"rgba(248,113,113,.75)",borderColor:"#f87171",borderWidth:1},
-      {label:"Valor de conversión",data:DATA.map(c=>c.value),backgroundColor:"rgba(52,211,153,.75)",borderColor:"#34d399",borderWidth:1}
-    ]},
-  options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
-    plugins:{legend:{labels:{color:"#aab3c2",usePointStyle:true,pointStyle:"circle",padding:11,font:{size:11},boxWidth:7}},
-      tooltip:{backgroundColor:"#141926",borderColor:"#2a3140",borderWidth:1,padding:11,cornerRadius:8,
-        callbacks:{label:c=>c.dataset.label+": "+clp(c.parsed.y),
-          afterBody:c=>{const i=c[0].dataIndex,d=DATA[i]; return ["ROAS: "+(d.conv?roas(d.value,d.cost).toFixed(2)+"x":"sin ventas")];}}}},
-    scales:{x:{grid:{color:"#171c26"},ticks:{color:"#7d8698",font:{size:9.5},maxRotation:20,minRotation:0}},
-      y:{grid:{color:"#171c26"},beginAtZero:true,ticks:{color:"#7d8698",font:{size:10},callback:kM}}}}
-});
+// ================= RENDER PRINCIPAL =================
+function render(){
+  const T = DATA.reduce((a,c)=>({
+    cost:a.cost+c.cost, impressions:a.impressions+c.impressions, clicks:a.clicks+c.clicks,
+    conv:a.conv+c.conv, value:a.value+c.value, budget:a.budget+c.budget
+  }),{cost:0,impressions:0,clicks:0,conv:0,value:0,budget:0});
 
-// ---------- Torta presupuesto ----------
-new Chart(document.getElementById("budgetPie"),{
-  type:"doughnut",
-  data:{labels:DATA.map(c=>c.name.replace("Search · ","").replace("DemandGen · ","")),
-    datasets:[{data:DATA.map(c=>c.budget),backgroundColor:DATA.map(c=>c.color+"dd"),borderColor:"#0f131c",borderWidth:2}]},
-  options:{responsive:true,maintainAspectRatio:false,cutout:"58%",
-    plugins:{legend:{position:"right",labels:{color:"#aab3c2",usePointStyle:true,pointStyle:"circle",padding:10,font:{size:11},boxWidth:7}},
-      tooltip:{backgroundColor:"#141926",borderColor:"#2a3140",borderWidth:1,padding:11,cornerRadius:8,
-        callbacks:{label:c=>c.label+": "+clp(c.parsed)+"/día ("+pct(c.parsed,T.budget).toFixed(0)+"%)"}}}}
-});
+  // ---- Cabecera ----
+  document.getElementById("subLine").textContent = "Pagani Chile · cuenta "+META.cuenta+" · "+(META.rangoLabel?META.rangoLabel+" · ":"")+rangoTxt();
+  document.getElementById("rangePill").textContent = "Rango: "+rangoTxt();
+  document.getElementById("budgetHint").textContent =
+    "Cómo se distribuye hoy el gasto diario entre las "+DATA.length+" campañas. Total "+clp(T.budget)+"/día ≈ "+clp(T.budget*30)+"/mes.";
+  document.getElementById("footer").innerHTML =
+    'Datos de Google Ads (cuenta '+META.cuenta+') · Rango '+(META.rangoLabel?'"'+META.rangoLabel+'": ':'')+rangoTxt()+' · Valor de conversión con previsiones pendientes de Google.<br>'+
+    'Editable en vivo con el botón «✎ Editar datos». Los cambios se guardan en este navegador.';
 
-// ---------- Scatter frontera de eficiencia ----------
-const pts = DATA.map(c=>({x:c.cost,y:roas(c.value,c.cost),conv:c.conv,camp:c.name,color:c.color,value:c.value}));
-const ROAS_TARGET = 2.5;
-const medX = (()=>{const s=DATA.map(c=>c.cost).sort((a,b)=>a-b),h=Math.floor(s.length/2);return s.length%2?s[h]:(s[h-1]+s[h])/2;})();
-const quadPlugin = {
-  id:"quads",
-  beforeDatasetsDraw(ch,args,opts){
-    const {ctx,chartArea:a,scales:{x,y}}=ch; if(!a) return;
-    const vx=x.getPixelForValue(opts.medX), hy=y.getPixelForValue(ROAS_TARGET);
-    ctx.save();
-    [[a.left,a.top,vx-a.left,hy-a.top,"rgba(52,211,153,.06)"],
-     [vx,a.top,a.right-vx,hy-a.top,"rgba(96,165,250,.05)"],
-     [a.left,hy,vx-a.left,a.bottom-hy,"rgba(251,191,36,.045)"],
-     [vx,hy,a.right-vx,a.bottom-hy,"rgba(248,113,113,.065)"]]
-    .forEach(([X,Y,Wd,H,f])=>{ if(Wd>0&&H>0){ctx.fillStyle=f;ctx.fillRect(X,Y,Wd,H);} });
-    ctx.setLineDash([4,4]);ctx.lineWidth=1;ctx.strokeStyle="#3a4457";
-    ctx.beginPath();ctx.moveTo(vx,a.top);ctx.lineTo(vx,a.bottom);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(a.left,hy);ctx.lineTo(a.right,hy);ctx.stroke();
-    ctx.setLineDash([]);ctx.font="600 10px -apple-system,sans-serif";
-    [["ESCALAR · barato y rentable",a.left+10,a.top+16,"#34d399","left"],
-     ["ÓPTIMO · caro pero rinde",a.right-10,a.top+16,"#60a5fa","right"],
-     ["REVISAR · barato y flojo",a.left+10,a.bottom-10,"#fbbf24","left"],
-     ["SOBREESCALADO · caro y malo",a.right-10,a.bottom-10,"#f87171","right"]]
-    .forEach(([t,X,Y,c,al])=>{ctx.fillStyle=c;ctx.textAlign=al;ctx.fillText(t,X,Y);});
-    ctx.textAlign="left";ctx.fillStyle="#68727f";ctx.font="500 9.5px -apple-system,sans-serif";
-    ctx.fillText("ROAS 2,5 (equilibrio)",a.left+6,hy-5);
-    ctx.restore();
-  }
+  // ---- KPIs ----
+  document.getElementById("kpis").innerHTML = [
+    ["Coste total", clp(T.cost), "o", clp(T.budget)+" /día presupuestado"],
+    ["Valor de conversión", clp(T.value), "b", "ventas atribuidas"],
+    ["ROAS global", roas(T.value,T.cost).toFixed(2)+"x", roas(T.value,T.cost)>=2.5?"g":roas(T.value,T.cost)>=1.5?"o":"r", "equilibrio ≈ 2,5x"],
+    ["Conversiones", T.conv.toFixed(0), "p", DATA.length?(T.conv/DATA.length).toFixed(1)+" prom. por campaña":"—"],
+    ["Coste por venta", T.conv?clp(T.cost/T.conv):"—", "", "CPA de la cuenta"],
+    ["Clics", T.clicks.toLocaleString("es-CL"), "", ctrOf(T.clicks,T.impressions).toFixed(2)+"% CTR"],
+    ["Contribución neta", clp(T.value-T.cost), (T.value-T.cost)>0?"g":"r", "sin costo de producto"]
+  ].map(([l,v,c,n])=>`<div class="kpi"><div class="l">${l}</div><div class="v ${c||""}">${v}</div><div class="n">${n}</div></div>`).join("");
+
+  // ---- Tarjetas por campaña ----
+  document.getElementById("spendCards").innerHTML = DATA.map(c=>{
+    const r = roas(c.value,c.cost); const lec = lectura(c); const share = pct(c.cost,T.cost);
+    return `<div class="sc ${lec.cls}">
+      <div class="t">${c.name}</div>
+      <div class="m" style="color:${lec.col}">${c.conv<1?"—":r.toFixed(2)+"x"} <span style="font-size:12px;color:#7d8698;font-weight:500">ROAS</span></div>
+      <div class="bar"><i style="width:${Math.min(share,100)}%;background:${c.color}"></i></div>
+      <div class="row"><span>Coste</span><b>${clp(c.cost)}</b></div>
+      <div class="row"><span>Valor conv.</span><b>${clp(c.value)}</b></div>
+      <div class="row"><span>Conversiones</span><b>${c.conv.toFixed(c.conv%1?2:0)}</b></div>
+      <div class="row"><span>CTR</span><b>${ctrOf(c.clicks,c.impressions).toFixed(2)}%</b></div>
+      <div class="row"><span>Estado</span><b><span class="tag ${lec.tag}">${lec.txt}</span></b></div>
+    </div>`;
+  }).join("");
+
+  // ---- Destruir gráficos previos ----
+  Object.values(charts).forEach(ch=>{ try{ch.destroy();}catch(e){} });
+  charts = {};
+
+  // ---- Gasto vs valor ----
+  charts.spendValue = new Chart(document.getElementById("spendValue"),{
+    type:"bar",
+    data:{labels:DATA.map(c=>c.name.replace("Search · ","").replace("DemandGen · ","")),
+      datasets:[
+        {label:"Coste",data:DATA.map(c=>c.cost),backgroundColor:"rgba(248,113,113,.75)",borderColor:"#f87171",borderWidth:1},
+        {label:"Valor de conversión",data:DATA.map(c=>c.value),backgroundColor:"rgba(52,211,153,.75)",borderColor:"#34d399",borderWidth:1}
+      ]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
+      plugins:{legend:{labels:{color:"#aab3c2",usePointStyle:true,pointStyle:"circle",padding:11,font:{size:11},boxWidth:7}},
+        tooltip:{backgroundColor:"#141926",borderColor:"#2a3140",borderWidth:1,padding:11,cornerRadius:8,
+          callbacks:{label:c=>c.dataset.label+": "+clp(c.parsed.y),
+            afterBody:c=>{const i=c[0].dataIndex,d=DATA[i]; return ["ROAS: "+(d.conv?roas(d.value,d.cost).toFixed(2)+"x":"sin ventas")];}}}},
+      scales:{x:{grid:{color:"#171c26"},ticks:{color:"#7d8698",font:{size:9.5},maxRotation:20,minRotation:0}},
+        y:{grid:{color:"#171c26"},beginAtZero:true,ticks:{color:"#7d8698",font:{size:10},callback:kM}}}}
+  });
+
+  // ---- Torta presupuesto ----
+  charts.budgetPie = new Chart(document.getElementById("budgetPie"),{
+    type:"doughnut",
+    data:{labels:DATA.map(c=>c.name.replace("Search · ","").replace("DemandGen · ","")),
+      datasets:[{data:DATA.map(c=>c.budget),backgroundColor:DATA.map(c=>c.color+"dd"),borderColor:"#0f131c",borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:"58%",
+      plugins:{legend:{position:"right",labels:{color:"#aab3c2",usePointStyle:true,pointStyle:"circle",padding:10,font:{size:11},boxWidth:7}},
+        tooltip:{backgroundColor:"#141926",borderColor:"#2a3140",borderWidth:1,padding:11,cornerRadius:8,
+          callbacks:{label:c=>c.label+": "+clp(c.parsed)+"/día ("+pct(c.parsed,T.budget).toFixed(0)+"%)"}}}}
+  });
+
+  // ---- Scatter frontera de eficiencia ----
+  const pts = DATA.map(c=>({x:c.cost,y:roas(c.value,c.cost),conv:c.conv,camp:c.name,color:c.color,value:c.value}));
+  const ROAS_TARGET = 2.5;
+  const medX = (()=>{const s=DATA.map(c=>c.cost).sort((a,b)=>a-b),h=Math.floor(s.length/2);return s.length?(s.length%2?s[h]:(s[h-1]+s[h])/2):0;})();
+  const quadPlugin = {
+    id:"quads",
+    beforeDatasetsDraw(ch,args,opts){
+      const {ctx,chartArea:a,scales:{x,y}}=ch; if(!a) return;
+      const vx=x.getPixelForValue(opts.medX), hy=y.getPixelForValue(ROAS_TARGET);
+      ctx.save();
+      [[a.left,a.top,vx-a.left,hy-a.top,"rgba(52,211,153,.06)"],
+       [vx,a.top,a.right-vx,hy-a.top,"rgba(96,165,250,.05)"],
+       [a.left,hy,vx-a.left,a.bottom-hy,"rgba(251,191,36,.045)"],
+       [vx,hy,a.right-vx,a.bottom-hy,"rgba(248,113,113,.065)"]]
+      .forEach(([X,Y,Wd,H,f])=>{ if(Wd>0&&H>0){ctx.fillStyle=f;ctx.fillRect(X,Y,Wd,H);} });
+      ctx.setLineDash([4,4]);ctx.lineWidth=1;ctx.strokeStyle="#3a4457";
+      ctx.beginPath();ctx.moveTo(vx,a.top);ctx.lineTo(vx,a.bottom);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(a.left,hy);ctx.lineTo(a.right,hy);ctx.stroke();
+      ctx.setLineDash([]);ctx.font="600 10px -apple-system,sans-serif";
+      [["ESCALAR · barato y rentable",a.left+10,a.top+16,"#34d399","left"],
+       ["ÓPTIMO · caro pero rinde",a.right-10,a.top+16,"#60a5fa","right"],
+       ["REVISAR · barato y flojo",a.left+10,a.bottom-10,"#fbbf24","left"],
+       ["SOBREESCALADO · caro y malo",a.right-10,a.bottom-10,"#f87171","right"]]
+      .forEach(([t,X,Y,c,al])=>{ctx.fillStyle=c;ctx.textAlign=al;ctx.fillText(t,X,Y);});
+      ctx.textAlign="left";ctx.fillStyle="#68727f";ctx.font="500 9.5px -apple-system,sans-serif";
+      ctx.fillText("ROAS 2,5 (equilibrio)",a.left+6,hy-5);
+      ctx.restore();
+    }
+  };
+  charts.scatter = new Chart(document.getElementById("scatter"),{
+    type:"scatter",
+    data:{datasets:[{label:"Campaña",data:pts,
+      backgroundColor:pts.map(p=>p.color+"cc"),borderColor:pts.map(p=>p.color),borderWidth:1.4,
+      pointRadius:pts.map(p=>Math.max(6,Math.min(6+p.conv*1.2,26))),
+      pointHoverRadius:pts.map(p=>Math.max(8,Math.min(8+p.conv*1.2,28)))}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{quads:{medX},
+        legend:{display:false},
+        tooltip:{backgroundColor:"#141926",borderColor:"#2a3140",borderWidth:1,padding:12,cornerRadius:8,displayColors:false,
+          callbacks:{title:c=>c[0].raw.camp,
+            label:c=>{const d=c.raw;return ["Coste: "+clp(d.x),"Valor conv.: "+clp(d.value),
+              "Conversiones: "+d.conv.toFixed(d.conv%1?2:0),"ROAS: "+d.y.toFixed(2)+"x",
+              d.conv<1?"⚠ Sin ventas — no decidas con esto aún":d.conv<3?"⚠ Pocas ventas — evidencia limitada":null].filter(Boolean);}}}},
+      scales:{x:{type:"linear",grid:{color:"#171c26"},beginAtZero:true,
+          title:{display:true,text:"Coste acumulado (CLP)",color:"#7d8698",font:{size:10}},
+          ticks:{color:"#7d8698",font:{size:10},callback:kM}},
+        y:{grid:{color:"#171c26"},beginAtZero:true,suggestedMax:6,
+          title:{display:true,text:"ROAS",color:"#7d8698",font:{size:10}},
+          ticks:{color:"#7d8698",font:{size:10},callback:v=>v.toFixed(1)+"x"}}}},
+    plugins:[quadPlugin]
+  });
+
+  // Nota del scatter (dinámica: campaña más rentable con ventas)
+  const conVentas = DATA.filter(c=>c.conv>=1);
+  const mejor = conVentas.slice().sort((a,b)=>roas(b.value,b.cost)-roas(a.value,a.cost))[0];
+  const mayorGasto = DATA.slice().sort((a,b)=>b.cost-a.cost)[0];
+  const peor = conVentas.slice().sort((a,b)=>roas(a.value,a.cost)-roas(b.value,b.cost))[0];
+  document.getElementById("scatterNote").innerHTML =
+    `<strong>Cómo leerlo:</strong> el punto ideal está arriba a la izquierda (rentable y barato). `+
+    (mejor?`<strong>${mejor.name}</strong> es la más rentable con ${roas(mejor.value,mejor.cost).toFixed(1)}x. `:``)+
+    (mayorGasto?`<strong>${mayorGasto.name}</strong> concentra el mayor gasto (${clp(mayorGasto.cost)}). `:``)+
+    (peor&&peor!==mejor?`<strong>${peor.name}</strong> es la de menor ROAS entre las que tienen ventas (${roas(peor.value,peor.cost).toFixed(2)}x). `:``)+
+    `Las campañas con 0 conversiones (p. ej. objetivos de visita a tienda o llamada aún sin medir) no deben juzgarse con este gráfico.`;
+
+  // ---- Embudo ----
+  charts.funnel = new Chart(document.getElementById("funnel"),{
+    type:"bar",
+    data:{labels:["Impresiones","Clics","Conversiones"],
+      datasets:[{data:[T.impressions,T.clicks,T.conv],
+        backgroundColor:["rgba(96,165,250,.7)","rgba(52,211,153,.7)","rgba(192,132,252,.8)"],
+        borderColor:["#60a5fa","#34d399","#c084fc"],borderWidth:1}]},
+    options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},
+        tooltip:{backgroundColor:"#141926",borderColor:"#2a3140",borderWidth:1,padding:11,cornerRadius:8,
+          callbacks:{label:c=>{const i=c.dataIndex;const v=c.parsed.x;
+            if(i===0)return "Impresiones: "+v.toLocaleString("es-CL");
+            if(i===1)return ["Clics: "+v.toLocaleString("es-CL"),"CTR: "+ctrOf(T.clicks,T.impressions).toFixed(2)+"%"];
+            return ["Conversiones: "+v.toFixed(0),"Tasa de conv.: "+pct(T.conv,T.clicks).toFixed(2)+"%"];}}}},
+      scales:{x:{type:"logarithmic",grid:{color:"#171c26"},ticks:{color:"#7d8698",font:{size:10}}},
+        y:{grid:{display:false},ticks:{color:"#c3cbd8",font:{size:12,weight:"600"}}}}}
+  });
+  document.getElementById("funnelNote").innerHTML =
+    `De <strong>${T.impressions.toLocaleString("es-CL")} impresiones</strong> bajamos a <strong>${T.clicks.toLocaleString("es-CL")} clics</strong> (CTR ${ctrOf(T.clicks,T.impressions).toFixed(2)}%) y a <strong>${T.conv.toFixed(0)} ventas</strong> (tasa de conversión ${pct(T.conv,T.clicks).toFixed(2)}%). El eje es logarítmico para que las tres etapas quepan. El salto grande está entre clic y venta: mucha gente entra pero pocos compran — normal en relojes de ticket alto, donde la compra se piensa varios días y por eso el remarketing importa tanto.`;
+
+  // ---- Tabla ----
+  document.getElementById("campTable").innerHTML = DATA.map(c=>{
+    const r = roas(c.value,c.cost); const lec = lectura(c);
+    const rc = c.conv<1 ? "" : r>=2.5?"good":r>=1.5?"mid":"bad";
+    return `<tr>
+      <td><span class="dot" style="background:${c.color}"></span>${c.name}</td>
+      <td style="text-align:right;color:#8b94a6">${c.tipo}</td>
+      <td style="text-align:right">${clp(c.budget)}</td>
+      <td style="text-align:right">${clp(c.cost)}</td>
+      <td style="text-align:right">${c.impressions.toLocaleString("es-CL")}</td>
+      <td style="text-align:right">${c.clicks.toLocaleString("es-CL")}</td>
+      <td style="text-align:right">${ctrOf(c.clicks,c.impressions).toFixed(2)}%</td>
+      <td style="text-align:right">${c.conv.toFixed(c.conv%1?2:0)}</td>
+      <td style="text-align:right">${clp(c.value)}</td>
+      <td style="text-align:right">${c.conv?clp(c.cost/c.conv):"—"}</td>
+      <td style="text-align:right" class="${rc}">${c.conv<1?"—":r.toFixed(2)+"x"}</td>
+      <td style="text-align:right"><span class="tag ${lec.tag}">${lec.txt}</span></td>
+    </tr>`;
+  }).join("") + `<tr style="border-top:2px solid #232a38">
+      <td><b>Total cuenta</b></td><td></td>
+      <td style="text-align:right"><b>${clp(T.budget)}</b></td>
+      <td style="text-align:right"><b>${clp(T.cost)}</b></td>
+      <td style="text-align:right"><b>${T.impressions.toLocaleString("es-CL")}</b></td>
+      <td style="text-align:right"><b>${T.clicks.toLocaleString("es-CL")}</b></td>
+      <td style="text-align:right"><b>${ctrOf(T.clicks,T.impressions).toFixed(2)}%</b></td>
+      <td style="text-align:right"><b>${T.conv.toFixed(0)}</b></td>
+      <td style="text-align:right"><b>${clp(T.value)}</b></td>
+      <td style="text-align:right"><b>${T.conv?clp(T.cost/T.conv):"—"}</b></td>
+      <td style="text-align:right" class="${roas(T.value,T.cost)>=2.5?'good':'mid'}"><b>${roas(T.value,T.cost).toFixed(2)}x</b></td>
+      <td></td></tr>`;
+
+  // ---- Diagnóstico (dinámico) ----
+  const marca = DATA.find(c=>/Marca/i.test(c.name)) || mejor;
+  const remk = DATA.find(c=>/Remarketing|Demand/i.test(c.name));
+  const generica = DATA.find(c=>/Gen[eé]rica/i.test(c.name)) || peor;
+  const pmax = DATA.find(c=>/Performance Max|PMax|Campaign #1/i.test(c.name)) || mayorGasto;
+  const sinConv = DATA.filter(c=>c.conv<1);
+
+  document.getElementById("diagGood").innerHTML =
+    `<strong>✓ Lo que funciona.</strong> `+
+    (marca?`<b>${marca.name}</b> rinde ${roas(marca.value,marca.cost).toFixed(1)}x con CTR ${ctrOf(marca.clicks,marca.impressions).toFixed(0)}% — de las más rentables. `:``)+
+    (remk?`El <b>${remk.name}</b> sostiene ${roas(remk.value,remk.cost).toFixed(1)}x. `:``)+
+    `ROAS global de la cuenta: <b>${roas(T.value,T.cost).toFixed(2)}x</b> (equilibrio ≈ 2,5x).`;
+
+  document.getElementById("diagWarn").innerHTML =
+    `<strong>⚠ Lo que preocupa.</strong> `+
+    (generica&&generica.conv>=1?`<b>${generica.name}</b> gastó ${clp(generica.cost)} para ${roas(generica.value,generica.cost).toFixed(2)}x. `:``)+
+    (pmax?`<b>${pmax.name}</b> concentra ${pct(pmax.cost,T.cost).toFixed(0)}% del gasto con ROAS ${roas(pmax.value,pmax.cost).toFixed(2)}x. `:``)+
+    (sinConv.length?`${sinConv.length===1?'La campaña':'Las campañas'} <b>${sinConv.map(c=>c.name).join(", ")}</b> ${sinConv.length===1?'marca':'marcan'} 0 conversiones (objetivos de visita/llamada aún sin medir, o poca data).`:``);
+
+  document.getElementById("diagNext").innerHTML =
+    `<strong>→ Próximos pasos.</strong> 1) Escalar las campañas verdes (ROAS ≥ 3x) que estén limitadas por presupuesto. 2) Revisar términos y bajar las rojas (ROAS < 1,5x). 3) Activar la extensión de ubicación para que las campañas de tienda empiecen a medir visitas y llamadas. 4) Mantener presupuestos estables 7 días entre ajustes para no reiniciar el aprendizaje.`;
+}
+
+// ================= EDITOR =================
+function buildEditor(){
+  document.getElementById("e_cuenta").value = META.cuenta;
+  document.getElementById("e_rangoLabel").value = META.rangoLabel || "";
+  document.getElementById("e_desde").value = META.desde || "";
+  document.getElementById("e_hasta").value = META.hasta || "";
+  const rows = DATA.map((c,i)=>`<tr data-i="${i}">
+    <td><input type="color" class="swatch" value="${c.color}" data-f="color"></td>
+    <td><input class="txt name" type="text" value="${c.name.replace(/"/g,'&quot;')}" data-f="name"></td>
+    <td><input class="txt" type="text" value="${c.tipo.replace(/"/g,'&quot;')}" data-f="tipo"></td>
+    <td><input type="number" min="0" step="1" value="${c.budget}" data-f="budget"></td>
+    <td><input type="number" min="0" step="1" value="${c.cost}" data-f="cost"></td>
+    <td><input type="number" min="0" step="1" value="${c.impressions}" data-f="impressions"></td>
+    <td><input type="number" min="0" step="1" value="${c.clicks}" data-f="clicks"></td>
+    <td><input type="number" min="0" step="0.01" value="${c.conv}" data-f="conv"></td>
+    <td><input type="number" min="0" step="1" value="${c.value}" data-f="value"></td>
+    <td><button class="rmrow" title="Eliminar">✕</button></td>
+  </tr>`).join("");
+  document.getElementById("editRows").innerHTML = rows;
+  document.querySelectorAll(".rmrow").forEach(b=>b.onclick=()=>{ b.closest("tr").remove(); });
+}
+
+function readEditor(){
+  const m = {
+    cuenta: document.getElementById("e_cuenta").value.trim() || "—",
+    rangoLabel: document.getElementById("e_rangoLabel").value.trim(),
+    desde: document.getElementById("e_desde").value,
+    hasta: document.getElementById("e_hasta").value
+  };
+  const arr = [];
+  document.querySelectorAll("#editRows tr").forEach(tr=>{
+    const get = f => tr.querySelector(`[data-f="${f}"]`);
+    const name = get("name").value.trim();
+    if(!name) return; // ignora filas sin nombre
+    arr.push({
+      name,
+      tipo: get("tipo").value.trim(),
+      color: get("color").value,
+      budget: +get("budget").value || 0,
+      cost: +get("cost").value || 0,
+      impressions: +get("impressions").value || 0,
+      clicks: +get("clicks").value || 0,
+      conv: +get("conv").value || 0,
+      value: +get("value").value || 0
+    });
+  });
+  return {m, arr};
+}
+
+// ---------- Botones ----------
+const editor = document.getElementById("editor");
+document.getElementById("toggleEdit").onclick = ()=>{
+  const opening = !editor.classList.contains("open");
+  if(opening){ buildEditor(); editor.classList.add("open"); editor.scrollIntoView({behavior:"smooth",block:"start"}); }
+  else editor.classList.remove("open");
 };
-new Chart(document.getElementById("scatter"),{
-  type:"scatter",
-  data:{datasets:[{label:"Campaña",data:pts,
-    backgroundColor:pts.map(p=>p.color+"cc"),borderColor:pts.map(p=>p.color),borderWidth:1.4,
-    pointRadius:pts.map(p=>Math.max(6,Math.min(6+p.conv*1.2,26))),
-    pointHoverRadius:pts.map(p=>Math.max(8,Math.min(8+p.conv*1.2,28)))}]},
-  options:{responsive:true,maintainAspectRatio:false,
-    plugins:{quads:{medX},
-      legend:{display:false},
-      tooltip:{backgroundColor:"#141926",borderColor:"#2a3140",borderWidth:1,padding:12,cornerRadius:8,displayColors:false,
-        callbacks:{title:c=>c[0].raw.camp,
-          label:c=>{const d=c.raw;return ["Coste: "+clp(d.x),"Valor conv.: "+clp(d.value),
-            "Conversiones: "+d.conv.toFixed(d.conv%1?2:0),"ROAS: "+d.y.toFixed(2)+"x",
-            d.conv<1?"⚠ Sin ventas — no decidas con esto aún":d.conv<3?"⚠ Pocas ventas — evidencia limitada":null].filter(Boolean);}}}},
-    scales:{x:{type:"linear",grid:{color:"#171c26"},beginAtZero:true,
-        title:{display:true,text:"Coste acumulado (CLP)",color:"#7d8698",font:{size:10}},
-        ticks:{color:"#7d8698",font:{size:10},callback:kM}},
-      y:{grid:{color:"#171c26"},beginAtZero:true,suggestedMax:6,
-        title:{display:true,text:"ROAS",color:"#7d8698",font:{size:10}},
-        ticks:{color:"#7d8698",font:{size:10},callback:v=>v.toFixed(1)+"x"}}}},
-  plugins:[quadPlugin]
-});
-document.getElementById("scatterNote").innerHTML =
-  `<strong>Cómo leerlo:</strong> el punto ideal está arriba a la izquierda (rentable y barato). <strong>Marca Pagani</strong> es tu joya — ROAS alto con poco gasto: es la que hay que escalar. <strong>PMax</strong> está caro pero sostiene la mayoría del valor de la cuenta. <strong>Genérica Hombre</strong> cae al cuadrante rojo (mucho gasto, ROAS bajo 1x). <strong>Local</strong> aparece pegada al piso con ROAS 0, pero es un espejismo: su objetivo son visitas a tienda y llamadas, que aún no se miden — no la juzgues con este gráfico hasta activar la extensión de ubicación.`;
+document.getElementById("closeBtn").onclick = ()=> editor.classList.remove("open");
 
-// ---------- Embudo ----------
-new Chart(document.getElementById("funnel"),{
-  type:"bar",
-  data:{labels:["Impresiones","Clics","Conversiones"],
-    datasets:[{data:[T.impressions,T.clicks,T.conv],
-      backgroundColor:["rgba(96,165,250,.7)","rgba(52,211,153,.7)","rgba(192,132,252,.8)"],
-      borderColor:["#60a5fa","#34d399","#c084fc"],borderWidth:1}]},
-  options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,
-    plugins:{legend:{display:false},
-      tooltip:{backgroundColor:"#141926",borderColor:"#2a3140",borderWidth:1,padding:11,cornerRadius:8,
-        callbacks:{label:c=>{const i=c.dataIndex;const v=c.parsed.x;
-          if(i===0)return "Impresiones: "+v.toLocaleString("es-CL");
-          if(i===1)return ["Clics: "+v.toLocaleString("es-CL"),"CTR: "+ctrOf(T.clicks,T.impressions).toFixed(2)+"%"];
-          return ["Conversiones: "+v.toFixed(0),"Tasa de conv.: "+pct(T.conv,T.clicks).toFixed(2)+"%"];}}}},
-    scales:{x:{type:"logarithmic",grid:{color:"#171c26"},ticks:{color:"#7d8698",font:{size:10}}},
-      y:{grid:{display:false},ticks:{color:"#c3cbd8",font:{size:12,weight:"600"}}}}}
-});
-document.getElementById("funnelNote").innerHTML =
-  `De <strong>${T.impressions.toLocaleString("es-CL")} impresiones</strong> bajamos a <strong>${T.clicks.toLocaleString("es-CL")} clics</strong> (CTR ${ctrOf(T.clicks,T.impressions).toFixed(2)}%) y a <strong>${T.conv.toFixed(0)} ventas</strong> (tasa de conversión ${pct(T.conv,T.clicks).toFixed(2)}%). El eje es logarítmico para que las tres etapas quepan. El salto grande está entre clic y venta: mucha gente entra pero pocos compran — normal en relojes de ticket alto, donde la compra se piensa varios días y por eso el remarketing importa tanto.`;
+document.getElementById("addRow").onclick = ()=>{
+  const i = document.querySelectorAll("#editRows tr").length;
+  const color = PALETTE[i % PALETTE.length];
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td><input type="color" class="swatch" value="${color}" data-f="color"></td>
+    <td><input class="txt name" type="text" value="" placeholder="Nueva campaña" data-f="name"></td>
+    <td><input class="txt" type="text" value="Búsqueda" data-f="tipo"></td>
+    <td><input type="number" min="0" step="1" value="0" data-f="budget"></td>
+    <td><input type="number" min="0" step="1" value="0" data-f="cost"></td>
+    <td><input type="number" min="0" step="1" value="0" data-f="impressions"></td>
+    <td><input type="number" min="0" step="1" value="0" data-f="clicks"></td>
+    <td><input type="number" min="0" step="0.01" value="0" data-f="conv"></td>
+    <td><input type="number" min="0" step="1" value="0" data-f="value"></td>
+    <td><button class="rmrow" title="Eliminar">✕</button></td>`;
+  document.getElementById("editRows").appendChild(tr);
+  tr.querySelector(".rmrow").onclick = ()=> tr.remove();
+  tr.querySelector(".name").focus();
+};
 
-// ---------- Tabla ----------
-document.getElementById("campTable").innerHTML = DATA.map(c=>{
-  const r = roas(c.value,c.cost);
-  const lec = lectura(c);
-  const rc = c.conv<1 ? "" : r>=2.5?"good":r>=1.5?"mid":"bad";
-  return `<tr>
-    <td><span class="dot" style="background:${c.color}"></span>${c.name}</td>
-    <td style="text-align:right;color:#8b94a6">${c.tipo}</td>
-    <td style="text-align:right">${clp(c.budget)}</td>
-    <td style="text-align:right">${clp(c.cost)}</td>
-    <td style="text-align:right">${c.impressions.toLocaleString("es-CL")}</td>
-    <td style="text-align:right">${c.clicks.toLocaleString("es-CL")}</td>
-    <td style="text-align:right">${ctrOf(c.clicks,c.impressions).toFixed(2)}%</td>
-    <td style="text-align:right">${c.conv.toFixed(c.conv%1?2:0)}</td>
-    <td style="text-align:right">${clp(c.value)}</td>
-    <td style="text-align:right">${c.conv?clp(c.cost/c.conv):"—"}</td>
-    <td style="text-align:right" class="${rc}">${c.conv<1?"—":r.toFixed(2)+"x"}</td>
-    <td style="text-align:right"><span class="tag ${lec.tag}">${lec.txt}</span></td>
-  </tr>`;
-}).join("") + `<tr style="border-top:2px solid #232a38">
-    <td><b>Total cuenta</b></td><td></td>
-    <td style="text-align:right"><b>${clp(T.budget)}</b></td>
-    <td style="text-align:right"><b>${clp(T.cost)}</b></td>
-    <td style="text-align:right"><b>${T.impressions.toLocaleString("es-CL")}</b></td>
-    <td style="text-align:right"><b>${T.clicks.toLocaleString("es-CL")}</b></td>
-    <td style="text-align:right"><b>${ctrOf(T.clicks,T.impressions).toFixed(2)}%</b></td>
-    <td style="text-align:right"><b>${T.conv.toFixed(0)}</b></td>
-    <td style="text-align:right"><b>${clp(T.value)}</b></td>
-    <td style="text-align:right"><b>${clp(T.cost/T.conv)}</b></td>
-    <td style="text-align:right" class="${roas(T.value,T.cost)>=2.5?'good':'mid'}"><b>${roas(T.value,T.cost).toFixed(2)}x</b></td>
-    <td></td></tr>`;
+document.getElementById("applyBtn").onclick = ()=>{
+  const {m, arr} = readEditor();
+  META = m;
+  DATA = arr.length ? arr : DATA;
+  saveState();
+  render();
+  const msg = document.getElementById("savedMsg");
+  msg.classList.add("show");
+  setTimeout(()=>msg.classList.remove("show"), 2200);
+};
 
-// ---------- Diagnóstico ----------
-const marca = DATA.find(c=>/Marca/.test(c.name));
-const generica = DATA.find(c=>/Genérica/.test(c.name));
-const pmax = DATA.find(c=>/Campaign #1/.test(c.name));
-document.getElementById("diagGood").innerHTML =
-  `<strong>✓ Lo que funciona.</strong> <b>Marca Pagani</b> rinde ${roas(marca.value,marca.cost).toFixed(1)}x con CTR ${ctrOf(marca.clicks,marca.impressions).toFixed(0)}% — es la campaña más rentable y está limitada por presupuesto, así que aguanta más inversión. El <b>Remarketing</b> sostiene ${roas(DATA.find(c=>/Remarketing/.test(c.name)).value,DATA.find(c=>/Remarketing/.test(c.name)).cost).toFixed(1)}x. Entre las dos, el ROAS de la cuenta se mantiene sobre el punto de equilibrio.`;
-document.getElementById("diagWarn").innerHTML =
-  `<strong>⚠ Lo que preocupa.</strong> <b>Genérica Hombre</b> gastó ${clp(generica.cost)} para ${roas(generica.value,generica.cost).toFixed(2)}x — bajo el equilibrio; es prospección fría y cara. <b>PMax</b> concentra ${pct(pmax.cost,T.cost).toFixed(0)}% del gasto con ROAS ${roas(pmax.value,pmax.cost).toFixed(2)}x, aceptable pero mejorable cuando se limpien los productos rechazados del feed. <b>Local</b> marca 0 conversiones porque aún no mide visitas a tienda ni llamadas (falta verificar la ficha de Providencia y activar la extensión de ubicación).`;
-document.getElementById("diagNext").innerHTML =
-  `<strong>→ Próximos pasos.</strong> 1) Subir Marca Pagani +20% (rinde 4,8x y le sobra techo). 2) Bajar Genérica Hombre hasta ver qué términos convierten. 3) Verificar la ficha de Google Business de Providencia y activar ubicación para que Local empiece a medir. 4) Mantener presupuestos estables 7 días entre ajustes para no reiniciar el aprendizaje.`;
+document.getElementById("revertBtn").onclick = ()=>{
+  if(!confirm("¿Restaurar los datos originales? Se perderán los cambios guardados en este navegador.")) return;
+  META = JSON.parse(JSON.stringify(DEFAULT_META));
+  DATA = JSON.parse(JSON.stringify(DEFAULT_DATA));
+  try{ localStorage.removeItem(STORE_KEY); }catch(e){}
+  buildEditor();
+  render();
+};
+
+// ---------- Primera pintura ----------
+render();
 </script>
 </body>
 </html>
