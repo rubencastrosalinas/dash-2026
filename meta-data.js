@@ -12,3 +12,7 @@ DATA.rows.push([37,3,49013,20095,886,39990,1],[37,6,27527,8971,555,187990,1],[37
 DATA.campaigns[27]="Tráfico tienda – Martes pila gratis";
 DATA.rows=DATA.rows.filter(r=>r[0]!==37);
 DATA.rows.push([37,3,100672,39492,1733,191750,3],[37,6,66398,21116,1301,187990,1],[37,26,26798,16741,820,0,0],[37,27,10927,43804,127,0,0]);
+
+// Semana del 17 de septiembre completa (17 al 23), recalculada con el dia 23.
+DATA.rows=DATA.rows.filter(r=>r[0]!==37);
+DATA.rows.push([37,3,121328,46786,2061,265740,4],[37,6,78347,24118,1496,187990,1],[37,26,32997,20873,1034,0,0],[37,27,10927,43804,127,0,0]);
