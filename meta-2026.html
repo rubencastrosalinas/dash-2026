@@ -61,7 +61,7 @@ tbody tr:hover{background:#faf9f6}
 </head>
 <body>
 <div class="wrap">
-<h1>Meta Ads &mdash; HBW Zurich 2023</h1>
+<h1>Meta Ads &mdash; HBW Zurich 2026</h1>
 <div class="sub" id="sub">Cargando datos&hellip;</div>
 
 <div class="bar">
@@ -114,7 +114,7 @@ tbody tr:hover{background:#faf9f6}
 <div class="card">
   <h3>Detalle</h3>
   <div class="scroll"><table id="tdet"></table></div>
-  <div class="note">La serie diaria por campa&ntilde;a cubre del 16 de junio al 13 de septiembre de 2026. Los rangos que empiezan antes usan la serie semanal, que agrupa por semanas completas e incluye solo las campa&ntilde;as con m&aacute;s de $120.000 de gasto anual (92% del gasto de la cuenta). ROAS y valor de conversi&oacute;n usan atribuci&oacute;n de Meta (7 d&iacute;as clic / 1 d&iacute;a visualizaci&oacute;n) y no cuadran con la venta real de Shopify. El bot&oacute;n "Actualizar datos" vuelve a leer los archivos publicados en GitHub sin usar cach&eacute;; no reconsulta Meta directamente.</div>
+  <div class="note">GitHub consulta la Marketing API de Meta cada 3 horas y vuelve a publicar los datos solo; el bot&oacute;n "Actualizar datos" relee lo &uacute;ltimo publicado, sin cach&eacute;. Los rangos que empiezan antes del inicio de la serie diaria usan la serie semanal, que agrupa por semanas completas y puede desbordar los bordes del rango. ROAS y valor de conversi&oacute;n usan la atribuci&oacute;n de Meta (7 d&iacute;as clic / 1 d&iacute;a visualizaci&oacute;n) y no cuadran con la venta real de Shopify. El d&iacute;a en curso viene incompleto: Meta registra el gasto antes que las conversiones.</div>
 </div>
 </div>
 
@@ -143,15 +143,17 @@ async function load(){
   ]);
   if(!a.ok||!b.ok)throw new Error("No se pudieron leer los archivos de datos");
   const lm=b.headers.get("last-modified")||a.headers.get("last-modified");
-  const src=(await a.text())+"\n"+(await b.text())+"\nreturn {DATA:DATA,DAILY:DAILY,DAILY_START:DAILY_START};";
+  const ta=await a.text(), tb=await b.text();
+  const src=ta+"\n"+tb+"\nreturn {DATA:DATA,DAILY:DAILY,DAILY_START:DAILY_START};";
   const out=new Function(src)();
   DATA=out.DATA;DAILY=out.DAILY;dstart=parse(out.DAILY_START);
   LAST=DATA.weeks[DATA.weeks.length-1];
   DAILY.forEach(r=>{const d=iso(addD(dstart,r[0]));if(d>LAST)LAST=d});
   el1.max=LAST;el2.max=LAST;
-  const f=lm?new Date(lm):null;
+  const mm=/Ultima corrida: (\d{4}-\d\d-\d\d) (\d\d:\d\d) UTC/.exec(ta);
+  const f=mm?new Date(mm[1]+"T"+mm[2]+":00Z"):(lm?new Date(lm):null);
   document.getElementById("sub").innerHTML="Datos hasta el "+fmt(LAST)+" de 2026 &middot; Valores en CLP"+
-    (f?" &middot; publicado el "+f.toLocaleDateString("es-CL")+" a las "+f.toLocaleTimeString("es-CL",{hour:"2-digit",minute:"2-digit"}):"");
+    (f?" &middot; actualizado el "+f.toLocaleDateString("es-CL")+" a las "+f.toLocaleTimeString("es-CL",{hour:"2-digit",minute:"2-digit"}):"");
 }
 
 function buildChips(){
