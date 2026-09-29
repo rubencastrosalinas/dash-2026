@@ -1,0 +1,70 @@
+name: Actualizar datos (Meta + Google)
+
+on:
+  schedule:
+    # GitHub usa UTC y Chile cambia de hora dos veces al ano, asi que se
+    # disparan las cuatro horas UTC posibles y el guardia de abajo deja
+    # pasar solo las que son las 08:00 y las 14:00 en Santiago.
+    - cron: "5 11,12,17,18 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: actualizar-dash
+  cancel-in-progress: false
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirmar que en Santiago son las 08 o las 14
+        id: reloj
+        run: |
+          hora=$(TZ=America/Santiago date +%H)
+          echo "En Santiago son las $hora."
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "corre=si" >> "$GITHUB_OUTPUT"
+          elif [ "$hora" = "08" ] || [ "$hora" = "14" ]; then
+            echo "corre=si" >> "$GITHUB_OUTPUT"
+          else
+            echo "corre=no" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.reloj.outputs.corre == 'si'
+
+      - uses: actions/setup-python@v5
+        if: steps.reloj.outputs.corre == 'si'
+        with:
+          python-version: "3.12"
+
+      - name: Descargar datos de Meta
+        if: steps.reloj.outputs.corre == 'si'
+        env:
+          META_TOKEN: ${{ secrets.META_TOKEN }}
+          META_AD_ACCOUNT: ${{ vars.META_AD_ACCOUNT || '372739988524670' }}
+          META_START: "2026-01-01"
+        run: python scripts/fetch_meta.py
+
+      - name: Descargar datos de Google Ads
+        if: steps.reloj.outputs.corre == 'si'
+        env:
+          GOOGLE_SHEET_URL: ${{ secrets.GOOGLE_SHEET_URL }}
+          GOOGLE_START: "2026-01-01"
+        run: python scripts/fetch_google.py
+
+      - name: Publicar los archivos actualizados
+        if: steps.reloj.outputs.corre == 'si'
+        run: |
+          git config user.name "actualizador-dash"
+          git config user.email "actions@github.com"
+          archivos="meta-data.js meta-daily.js google-data.js google-daily.js"
+          if git diff --quiet -- $archivos; then
+            echo "Sin cambios: no se hace commit."
+            exit 0
+          fi
+          git add $archivos
+          git commit -m "Datos al $(TZ=America/Santiago date '+%Y-%m-%d %H:%M') (Santiago)"
+          git push
