@@ -19,7 +19,10 @@ PESTANA = os.environ.get("GOOGLE_SHEET_TAB", "datos").strip()
 WEEK0 = datetime.date(2026, 1, 1)   # mismo ancla semanal que Meta
 
 if not SHEET:
-    sys.exit("Falta el secret GOOGLE_SHEET_URL")
+    # Todavia no se configuro la hoja de Google. No es un error: se avisa y se
+    # sale limpio para que la actualizacion de Meta siga corriendo igual.
+    print("GOOGLE_SHEET_URL sin definir: se omite Google Ads en esta corrida.")
+    sys.exit(0)
 
 
 def id_de_hoja(url):
