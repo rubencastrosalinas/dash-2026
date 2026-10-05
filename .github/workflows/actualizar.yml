@@ -2,10 +2,10 @@ name: Actualizar datos (Meta + Google)
 
 on:
   schedule:
-    # GitHub usa UTC y Chile cambia de hora dos veces al ano, asi que se
-    # disparan las cuatro horas UTC posibles y el guardia de abajo deja
-    # pasar solo las que son las 08:00 y las 14:00 en Santiago.
-    - cron: "5 11,12,17,18 * * *"
+    # Cada 4 horas, en UTC. Antes habia una guardia que solo dejaba pasar
+    # las 08:00 y las 14:00 de Santiago, pero GitHub atrasa los cron hasta
+    # media hora y casi ninguna corrida caia dentro de esa ventana.
+    - cron: "7 */4 * * *"
   workflow_dispatch:
 
 permissions:
@@ -19,44 +19,37 @@ jobs:
   actualizar:
     runs-on: ubuntu-latest
     steps:
-      - name: Confirmar que en Santiago son las 08 o las 14
-        id: reloj
-        run: |
-          hora=$(TZ=America/Santiago date +%H)
-          echo "En Santiago son las $hora."
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "corre=si" >> "$GITHUB_OUTPUT"
-          elif [ "$hora" = "08" ] || [ "$hora" = "14" ]; then
-            echo "corre=si" >> "$GITHUB_OUTPUT"
-          else
-            echo "corre=no" >> "$GITHUB_OUTPUT"
-          fi
-
       - uses: actions/checkout@v4
-        if: steps.reloj.outputs.corre == 'si'
 
       - uses: actions/setup-python@v5
-        if: steps.reloj.outputs.corre == 'si'
         with:
           python-version: "3.12"
 
       - name: Descargar datos de Meta
-        if: steps.reloj.outputs.corre == 'si'
         env:
           META_TOKEN: ${{ secrets.META_TOKEN }}
           META_AD_ACCOUNT: ${{ vars.META_AD_ACCOUNT || '372739988524670' }}
           META_START: "2026-01-01"
-        run: python scripts/fetch_meta.py
+        run: |
+          if [ -z "$META_TOKEN" ]; then
+            echo "::error::Falta el secret META_TOKEN. Sin el, GitHub no puede consultar la Marketing API de Meta. Se crea en Settings > Secrets and variables > Actions > New repository secret, con un token de usuario del sistema de Meta con permiso ads_read."
+            exit 1
+          fi
+          python scripts/fetch_meta.py
 
       - name: Descargar datos de Google Ads
-        if: steps.reloj.outputs.corre == 'si'
+        continue-on-error: true
         env:
           GOOGLE_SHEET_URL: ${{ secrets.GOOGLE_SHEET_URL }}
           GOOGLE_START: "2026-01-01"
-        run: python scripts/fetch_google.py
+        run: |
+          if [ -z "$GOOGLE_SHEET_URL" ]; then
+            echo "Sin GOOGLE_SHEET_URL: se omite Google y la corrida sigue."
+            exit 0
+          fi
+          python scripts/fetch_google.py
 
       - name: Publicar los archivos actualizados
-        if: steps.reloj.outputs.corre == 'si'
         run: |
           git config user.name "actualizador-dash"
           git config user.email "actions@github.com"
@@ -70,4 +63,5 @@ jobs:
             exit 0
           fi
           git commit -m "Datos al $(TZ=America/Santiago date '+%Y-%m-%d %H:%M') (Santiago)"
+          git pull --rebase --autostash
           git push
