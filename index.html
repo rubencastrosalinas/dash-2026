@@ -37,6 +37,11 @@ button:hover{background:#f0efea}
 .pt i{width:10px;height:10px;border-radius:3px;display:inline-block;opacity:.3}
 .pt.on i{opacity:1}
 .pt .m{font-size:11px;color:#8a8a84;font-weight:400}
+.edad{font-size:10px;font-weight:600;border-radius:4px;padding:1px 6px;margin-left:2px}
+.edad.fresco{background:#e2f3ec;color:#0f6e56}
+.edad.tibio{background:#faeeda;color:#854f0b}
+.edad.viejo{background:#fae3e3;color:#8c2020}
+.edad.gris{background:#f0efea;color:#8a8a84}
 .chips{display:flex;flex-wrap:wrap;gap:7px;max-height:210px;overflow:auto}
 .chip{display:flex;align-items:center;gap:7px;border:1px solid #dcdbd4;background:#fafaf8;border-radius:20px;padding:5px 13px 5px 10px;font-size:13px;cursor:pointer;user-select:none}
 .chip.on{background:#e6f1fb;border-color:#8fbbe8;color:#0c447c}
@@ -152,6 +157,7 @@ const fmt=s=>{const p=s.split("-");return parseInt(p[2],10)+" "+MES[parseInt(p[1
 let CAMPS=new Map(), WROWS=[], DROWS=[], WEEKS=[];
 let dstart=null, LAST=null, order=[], sel=new Set(), plats=new Set(["meta","google"]);
 let margin=45, sortKey="sp", chart=null, cargadas=new Set(), sellos=[];
+let selloPlat={}, fuentePlat={};
 
 const elP=document.getElementById("preset"),el1=document.getElementById("f1"),el2=document.getElementById("f2");
 const chips=document.getElementById("chips"),msg=document.getElementById("msg"),btn=document.getElementById("upd");
@@ -165,6 +171,89 @@ async function txt(f){
 function sello(t){
   const m=/Ultima corrida: (\d{4}-\d\d-\d\d) (\d\d:\d\d) UTC/.exec(t);
   return m?new Date(m[1]+"T"+m[2]+":00Z"):null;
+}
+
+/* ---- Google en vivo -------------------------------------------------
+   El script de Google Ads escribe su hoja cada hora. La hoja esta
+   compartida por enlace, asi que el navegador puede leerla directamente al
+   apretar "Actualizar datos", sin esperar a que GitHub republique. */
+const HOJA_GOOGLE="1Ei4xXgxmomxeYj8v7GrGCBlN5lAwo7AAoP0gMpjHJW8";
+const urlHoja=h=>"https://docs.google.com/spreadsheets/d/"+HOJA_GOOGLE+
+  "/gviz/tq?tqx=out:csv&sheet="+h+"&t="+Date.now();
+
+function leerCSV(txt){
+  const filas=[];let campo="",fila=[],comillas=false;
+  for(let i=0;i<txt.length;i++){
+    const c=txt[i];
+    if(comillas){
+      if(c==='"'){ if(txt[i+1]==='"'){campo+='"';i++} else comillas=false }
+      else campo+=c;
+    }else if(c==='"')comillas=true;
+    else if(c===","){fila.push(campo);campo=""}
+    else if(c==="\n"){fila.push(campo);filas.push(fila);fila=[];campo=""}
+    else if(c!=="\r")campo+=c;
+  }
+  if(campo.length||fila.length){fila.push(campo);filas.push(fila)}
+  if(!filas.length)return[];
+  const cab=filas.shift().map(x=>x.trim());
+  return filas.filter(f=>f.length===cab.length)
+              .map(f=>Object.fromEntries(cab.map((k,i)=>[k,f[i]])));
+}
+
+const WEEK0G=parse("2026-01-01");
+function googleDesdeHoja(csv){
+  const regs=leerCSV(csv);
+  const n=x=>{const v=parseFloat(String(x||"0").replace(",","."));return isFinite(v)?v:0};
+  const nombres=new Map(), porDia=new Map();
+  regs.forEach(r=>{
+    const f=(r.fecha||"").trim().slice(0,10), id=(r.campaign_id||"").trim();
+    if(!/^\d{4}-\d\d-\d\d$/.test(f)||!id)return;
+    nombres.set(id,(r.campana||id).trim());
+    const v=[Math.round(n(r.gasto)),Math.round(n(r.impresiones)),Math.round(n(r.clics)),
+             Math.round(n(r.valor)),Math.round(n(r.conversiones))];
+    if(!v.some(x=>x))return;
+    if(!porDia.has(f))porDia.set(f,new Map());
+    porDia.get(f).set(id,v);
+  });
+  if(!porDia.size)throw new Error("la hoja de Google vino vacia");
+
+  const ids=[...nombres.keys()].sort((a,b)=>nombres.get(a).localeCompare(nombres.get(b)));
+  const idx=new Map(ids.map((id,i)=>[id,i]));
+  const campaigns=ids.map(id=>nombres.get(id));
+
+  const fechas=[...porDia.keys()].sort();
+  const S=fechas[0], d0=parse(S);
+  const L=[], semanal=new Map();
+  fechas.forEach(f=>{
+    const off=Math.round((parse(f)-d0)/864e5);
+    const w=iso(addD(WEEK0G,7*Math.floor((parse(f)-WEEK0G)/6048e5)));
+    porDia.get(f).forEach((v,id)=>{
+      const ci=idx.get(id);
+      L.push([off,ci,v[0],v[1],v[2],v[3],v[4]]);
+      const clave=w+"|"+ci;
+      const a=semanal.get(clave)||[0,0,0,0,0];
+      for(let i=0;i<5;i++)a[i]+=v[i];
+      semanal.set(clave,a);
+    });
+  });
+  const weeks=[...new Set([...semanal.keys()].map(k=>k.split("|")[0]))].sort();
+  const wpos=new Map(weeks.map((w,i)=>[w,i]));
+  const rows=[...semanal.entries()].map(([k,a])=>{
+    const [w,ci]=k.split("|");
+    return [wpos.get(w),+ci,a[0],a[1],a[2],a[3],a[4]];
+  });
+  return {D:{campaigns:campaigns,weeks:weeks,rows:rows},L:L,S:S};
+}
+
+async function googleEnVivo(){
+  const [csv,ctrl]=await Promise.all([
+    fetch(urlHoja("datos"),{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("hoja "+r.status);return r.text()}),
+    fetch(urlHoja("control"),{cache:"no-store"}).then(r=>r.ok?r.text():"").catch(()=>"")
+  ]);
+  const g=googleDesdeHoja(csv);
+  const m=/(\d{4}-\d\d-\d\d) (\d\d:\d\d) UTC/.exec(ctrl||"");
+  g.sello=m?new Date(m[1]+"T"+m[2]+":00Z"):null;
+  return g;
 }
 
 function absorber(p,D,L,S){
@@ -183,29 +272,41 @@ function absorber(p,D,L,S){
 
 async function load(){
   CAMPS=new Map();WROWS=[];DROWS=[];cargadas=new Set();dstart=null;sellos=[];
+  selloPlat={};fuentePlat={};
   const faltan=[];
 
   const [ma,mb]=await Promise.all([txt("meta-data.js"),txt("meta-daily.js")]);
   const m=new Function(ma+"\n"+mb+"\nreturn{D:DATA,L:DAILY,S:DAILY_START};")();
   absorber("meta",m.D,m.L,m.S);
   sellos.push(sello(ma));
+  selloPlat.meta=sello(ma); fuentePlat.meta="copia publicada";
 
+  // Google: primero la hoja en vivo; si no responde, los archivos publicados.
   try{
-    const [ga,gb]=await Promise.all([txt("google-data.js"),txt("google-daily.js")]);
-    const g=new Function(ga+"\n"+gb+"\nreturn{D:GOOGLE_DATA,L:GOOGLE_DAILY,S:GOOGLE_DAILY_START};")();
+    const g=await googleEnVivo();
     absorber("google",g.D,g.L,g.S);
-    sellos.push(sello(ga));
-  }catch(e){faltan.push("google")}
+    sellos.push(g.sello);
+    selloPlat.google=g.sello; fuentePlat.google="hoja en vivo";
+  }catch(e1){
+    try{
+      const [ga,gb]=await Promise.all([txt("google-data.js"),txt("google-daily.js")]);
+      const g=new Function(ga+"\n"+gb+"\nreturn{D:GOOGLE_DATA,L:GOOGLE_DAILY,S:GOOGLE_DAILY_START};")();
+      absorber("google",g.D,g.L,g.S);
+      sellos.push(sello(ga));
+      selloPlat.google=sello(ga); fuentePlat.google="copia publicada";
+    }catch(e2){faltan.push("google")}
+  }
 
   WEEKS=[...new Set(WROWS.map(r=>r.w))].sort();
   LAST=WEEKS.length?WEEKS[WEEKS.length-1]:FIRST;
   DROWS.forEach(r=>{if(r.d>LAST)LAST=r.d});
   el1.max=LAST;el2.max=LAST;
 
-  const f=sellos.filter(Boolean).sort((a,b)=>b-a)[0];
-  const quien=[...cargadas].map(p=>PNOM[p]).join(" + ");
-  document.getElementById("sub").innerHTML=quien+" &middot; datos hasta el "+fmt(LAST)+" de 2026 &middot; valores en CLP"+
-    (f?" &middot; actualizado el "+f.toLocaleDateString("es-CL")+" a las "+f.toLocaleTimeString("es-CL",{hour:"2-digit",minute:"2-digit"}):"");
+  const detalle=["meta","google"].filter(p=>cargadas.has(p)).map(p=>{
+    const t=selloPlat[p]?selloPlat[p].toLocaleTimeString("es-CL",{hour:"2-digit",minute:"2-digit"}):"?";
+    return PNOM[p]+" "+textoEdad(selloPlat[p])+" ("+t+(fuentePlat[p]==="hoja en vivo"?", en vivo":"")+")";
+  }).join(" &middot; ");
+  document.getElementById("sub").innerHTML="Datos hasta el "+fmt(LAST)+" de 2026 &middot; valores en CLP<br>"+detalle;
   return faltan;
 }
 
@@ -218,7 +319,8 @@ function buildPlats(){
     DROWS.forEach(r=>{if(CAMPS.get(r.k).p===p)sp+=r.sp});
     const d=document.createElement("div");
     d.className="pt"+(plats.has(p)?" on":"");
-    d.innerHTML='<i style="background:'+PCOL[p]+'"></i>'+PNOM[p]+' <span class="m">'+clp(sp)+'</span>';
+    d.innerHTML='<i style="background:'+PCOL[p]+'"></i>'+PNOM[p]+' <span class="m">'+clp(sp)+'</span>'+
+                '<span class="edad '+claseEdad(selloPlat[p])+'">'+textoEdad(selloPlat[p])+'</span>';
     d.onclick=()=>{
       plats.has(p)?plats.delete(p):plats.add(p);
       if(!plats.size)plats.add(p);
@@ -283,13 +385,31 @@ btn.onclick=async()=>{
   btn.disabled=true;const t=btn.textContent;btn.textContent="Actualizando\u2026";
   try{
     const faltan=await load();buildPlats();buildChips();applyPreset();
-    avisos(faltan);btn.textContent="Datos al d\u00eda";
-    setTimeout(()=>{btn.textContent=t;btn.disabled=false},1800);
+    avisos(faltan);
+    btn.textContent="Revisado "+new Date().toLocaleTimeString("es-CL",{hour:"2-digit",minute:"2-digit"});
+    setTimeout(()=>{btn.textContent=t;btn.disabled=false},2500);
   }catch(e){
     msg.innerHTML='<div class="err">No se pudieron actualizar los datos: '+e.message+'</div>';
     btn.textContent=t;btn.disabled=false;
   }
 };
+
+function minutosDesde(f){return f?Math.max(0,Math.round((Date.now()-f.getTime())/60000)):null}
+function textoEdad(f){
+  const m=minutosDesde(f);
+  if(m===null)return "sin fecha";
+  if(m<60)return "hace "+m+" min";
+  const h=Math.floor(m/60);
+  if(h<24)return "hace "+h+" h"+(m%60?" "+(m%60)+" min":"");
+  return "hace "+Math.floor(h/24)+" d";
+}
+function claseEdad(f){
+  const m=minutosDesde(f);
+  if(m===null)return "gris";
+  if(m<=90)return "fresco";
+  if(m<=360)return "tibio";
+  return "viejo";
+}
 
 const vacio=()=>({sp:0,va:0,im:0,cl:0,pu:0});
 const acum=(o,r)=>{o.sp+=r.sp;o.im+=r.im;o.cl+=r.cl;o.va+=r.va;o.pu+=r.pu};
