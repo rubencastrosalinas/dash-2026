@@ -12,8 +12,8 @@
  * pega aca abajo y en el secret GOOGLE_SHEET_URL del repo.
  */
 
-var SHEET_URL = '';                 // se completa tras la primera corrida
-var DESDE     = '2026-01-01';       // inicio del historico
+var SHEET_URL = 'https://docs.google.com/spreadsheets/d/1Ei4xXgxmomxeYj8v7GrGCBlN5lAwo7AAoP0gMpjHJW8/edit';
+var DESDE     = '2026-01-01';       // Google Ads solo tiene datos desde el 30 jun 2026
 var PESTANA   = 'datos';
 
 function main() {

@@ -13,8 +13,13 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-SHEET = os.environ.get("GOOGLE_SHEET_URL", "").strip()
-START = os.environ.get("GOOGLE_START", "2026-01-01").strip()
+# La hoja la publica el script "dash-2026 - Extractor diario" dentro de la
+# cuenta de Google Ads. Esta compartida por enlace, asi que la URL no es un
+# secreto; se puede sobrescribir con GOOGLE_SHEET_URL si algun dia cambia.
+HOJA_POR_DEFECTO = ("https://docs.google.com/spreadsheets/d/"
+                    "1Ei4xXgxmomxeYj8v7GrGCBlN5lAwo7AAoP0gMpjHJW8/edit")
+SHEET = os.environ.get("GOOGLE_SHEET_URL", "").strip() or HOJA_POR_DEFECTO
+START = os.environ.get("GOOGLE_START", "2026-06-30").strip()
 PESTANA = os.environ.get("GOOGLE_SHEET_TAB", "datos").strip()
 WEEK0 = datetime.date(2026, 1, 1)   # mismo ancla semanal que Meta
 

@@ -26,6 +26,7 @@ jobs:
           python-version: "3.12"
 
       - name: Descargar datos de Meta
+        continue-on-error: true
         env:
           META_TOKEN: ${{ secrets.META_TOKEN }}
           META_AD_ACCOUNT: ${{ vars.META_AD_ACCOUNT || '372739988524670' }}
@@ -40,14 +41,11 @@ jobs:
       - name: Descargar datos de Google Ads
         continue-on-error: true
         env:
+          # La hoja va por defecto dentro del script; el secret solo sirve
+          # para apuntar a otra sin tocar el codigo.
           GOOGLE_SHEET_URL: ${{ secrets.GOOGLE_SHEET_URL }}
-          GOOGLE_START: "2026-01-01"
-        run: |
-          if [ -z "$GOOGLE_SHEET_URL" ]; then
-            echo "Sin GOOGLE_SHEET_URL: se omite Google y la corrida sigue."
-            exit 0
-          fi
-          python scripts/fetch_google.py
+          GOOGLE_START: "2026-06-30"
+        run: python scripts/fetch_google.py
 
       - name: Publicar los archivos actualizados
         run: |
