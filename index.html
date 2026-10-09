@@ -144,9 +144,9 @@ const PCOL={meta:"#2a78d6",google:"#eb6834"};
 const PNOM={meta:"Meta Ads",google:"Google Ads"};
 const SER=[{k:"sp",n:"Gasto",on:true},{k:"va",n:"Valor conv.",on:true},{k:"ro",n:"ROAS",on:true},{k:"ct",n:"CTR",on:false},{k:"cv",n:"Conversi\u00f3n",on:false}];
 const FIRST="2026-01-01";
-const iso=d=>d.toISOString().slice(0,10);
+const iso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const parse=s=>new Date(s+"T00:00:00");
-const addD=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const addD=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);x.setHours(0,0,0,0);return x};
 const fmt=s=>{const p=s.split("-");return parseInt(p[2],10)+" "+MES[parseInt(p[1],10)-1]};
 
 let CAMPS=new Map(), WROWS=[], DROWS=[], WEEKS=[];
@@ -300,7 +300,9 @@ function aggDaily(a,b){
   for(let d=new Date(a);d<=b;d=addD(d,1))buckets.set(iso(d),Object.assign({k:iso(d)},vacio()));
   DROWS.forEach(r=>{
     if(r.d<ia||r.d>ib||!activo(r.k))return;
-    acum(buckets.get(r.d),r);
+    const cubo=buckets.get(r.d);
+    if(!cubo)return;   // defensa: un dia sin casilla no debe tumbar el tablero
+    acum(cubo,r);
     if(!camps.has(r.k))camps.set(r.k,Object.assign({k:r.k},vacio()));
     acum(camps.get(r.k),r);
     const p=CAMPS.get(r.k).p;

@@ -125,9 +125,9 @@ const clp=v=>"$"+nf.format(Math.round(v));
 const COL={sp:"#2a78d6",va:"#1baf7a",ro:"#eb6834",ct:"#6250d6",cv:"#eda100"};
 const SER=[{k:"sp",n:"Gasto",on:true},{k:"va",n:"Valor conv.",on:true},{k:"ro",n:"ROAS",on:true},{k:"ct",n:"CTR",on:false},{k:"cv",n:"Conversi\u00f3n",on:false}];
 const FIRST="2026-01-01";
-const iso=d=>d.toISOString().slice(0,10);
+const iso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const parse=s=>new Date(s+"T00:00:00");
-const addD=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const addD=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);x.setHours(0,0,0,0);return x};
 const fmt=s=>{const p=s.split("-");return parseInt(p[2],10)+" "+MES[parseInt(p[1],10)-1]};
 
 let DATA=null,DAILY=null,dstart=null,LAST=null,order=[],sel=new Set(),margin=45,sortKey="sp",chart=null;
