@@ -73,6 +73,47 @@ tbody tr:hover{background:#faf9f6}
 .err{font-size:12px;color:#8c2020;background:#fae3e3;border-radius:7px;padding:7px 11px;margin-bottom:12px}
 .scroll{overflow-x:auto}
 @media(max-width:640px){.kpi .v{font-size:18px}.wrap{padding:16px 12px 40px}.cw{height:320px}.rng{margin-left:0;width:100%}}
+/* ---- analitica ---------------------------------------------------- */
+.tabs{display:flex;gap:4px;flex-wrap:wrap;background:#fff;border:1px solid #e3e2dc;border-radius:12px;padding:5px;margin-bottom:18px}
+.tab{flex:1 1 auto;min-width:110px;text-align:center;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:500;color:#52514e;cursor:pointer;user-select:none;border:0;background:transparent;margin:0}
+.tab:hover{background:#f3f2ee}
+.tab.on{background:#eef4fb;color:#1c5cab}
+.panel[hidden]{display:none}
+.ph{font-size:13px;font-weight:600;color:#3d3d3a;margin:0 0 2px}
+.psub{font-size:12px;color:#898781;margin:0 0 12px;line-height:1.45}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:820px){.grid2{grid-template-columns:1fr}}
+.cw2{position:relative;height:230px}
+.cw3{position:relative;height:300px}
+.cw4{position:relative;height:420px}
+.foco{display:none;align-items:center;gap:10px;background:#eef4fb;border:1px solid #a9c9ea;color:#0c447c;border-radius:10px;padding:9px 14px;margin-bottom:16px;font-size:13px}
+.foco.on{display:flex}
+.foco b{font-weight:600}
+.foco button{margin-left:auto;background:#fff;border:1px solid #a9c9ea;color:#0c447c}
+tbody tr.clic{cursor:pointer}
+tbody tr.clic:hover{background:#eef4fb}
+tbody tr.foco{background:#eef4fb;box-shadow:inset 3px 0 0 #2a78d6}
+.spark{display:block}
+.hm{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.hm .c{border-radius:6px;padding:10px 6px;text-align:center;line-height:1.3}
+.hm .d{font-size:11px;color:#898781;text-align:center;padding-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+.hm .v{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.hm .s{font-size:10px;opacity:.75;font-variant-numeric:tabular-nums}
+.fn{display:flex;flex-direction:column;gap:0}
+.fn .st{padding:12px 0}
+.fn .lb{font-size:11px;color:#898781;text-transform:uppercase;letter-spacing:.4px}
+.fn .nm{font-size:24px;font-weight:600;letter-spacing:-.4px;margin:2px 0 7px}
+.fn .track{height:9px;background:#f0efec;border-radius:5px;overflow:hidden;margin-bottom:4px}
+.fn .fill{height:100%;border-radius:5px}
+.fn .prev{font-size:11px;color:#898781;font-variant-numeric:tabular-nums}
+.fn .gap{display:flex;align-items:center;gap:9px;padding:7px 0;border-top:1px solid #f0efec;border-bottom:1px solid #f0efec}
+.fn .rate{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.fn .rlb{font-size:12px;color:#898781}
+.lgd{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;font-size:12px;color:#52514e}
+.lgd span{display:flex;align-items:center;gap:6px}
+.lgd i{width:10px;height:10px;border-radius:2px;display:inline-block}
+.quad{font-size:12px;color:#898781;display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;margin-top:12px}
+.quad b{color:#3d3d3a;font-weight:600}
 </style>
 </head>
 <body>
@@ -114,23 +155,102 @@ tbody tr:hover{background:#faf9f6}
   <div class="scroll"><table id="tplat"></table></div>
 </div>
 
+<div class="foco" id="foco"></div>
+
 <div class="card">
   <div class="fh">
     <h2>Campa&ntilde;as</h2>
     <div><button id="all">Todas</button><button id="none">Ninguna</button><button id="top">Top 5</button></div>
   </div>
   <div class="chips" id="chips"></div>
+  <div class="note">Un clic en una campa&ntilde;a la enciende o apaga. Para aislarla en todos los gr&aacute;ficos, haz clic en su fila del ranking o en su burbuja del mapa de eficiencia.</div>
 </div>
 
-<div class="card">
-  <h3>Vista combinada</h3>
-  <div class="series" id="series"></div>
-  <div class="cw"><canvas id="cc"></canvas></div>
+<div class="tabs" id="tabs">
+  <button class="tab on" data-t="tend">Tendencia</button>
+  <button class="tab" data-t="efi">Eficiencia</button>
+  <button class="tab" data-t="con">Contribuci&oacute;n</button>
+  <button class="tab" data-t="emb">Embudo</button>
+  <button class="tab" data-t="mez">Mezcla</button>
+</div>
+
+<div class="panel" id="p-tend">
+  <div class="card">
+    <p class="ph">Inversi&oacute;n y valor de conversi&oacute;n</p>
+    <p class="psub">Las dos barras est&aacute;n en pesos, en la misma escala: la distancia entre ellas es el retorno bruto.</p>
+    <div class="cw3"><canvas id="c-gv"></canvas></div>
+  </div>
+  <div class="card">
+    <p class="ph">ROAS contra el punto de equilibrio</p>
+    <p class="psub" id="ps-roas"></p>
+    <div class="cw3"><canvas id="c-roas"></canvas></div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <p class="ph">CTR</p>
+      <p class="psub">Clics sobre impresiones. Mide si el anuncio llama la atenci&oacute;n.</p>
+      <div class="cw2"><canvas id="c-ctr"></canvas></div>
+    </div>
+    <div class="card">
+      <p class="ph">Tasa de conversi&oacute;n</p>
+      <p class="psub">Compras sobre clics. Mide si la ficha y el checkout cierran la venta.</p>
+      <div class="cw2"><canvas id="c-cvr"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<div class="panel" id="p-efi" hidden>
+  <div class="card">
+    <p class="ph">Mapa de eficiencia</p>
+    <p class="psub">Cada burbuja es una campa&ntilde;a: a la derecha las que m&aacute;s gastan, arriba las que mejor devuelven, y el tama&ntilde;o son las compras. La l&iacute;nea marca el equilibrio. Haz clic en una burbuja para aislarla.</p>
+    <div class="cw4"><canvas id="c-sc"></canvas></div>
+    <div class="quad">
+      <div><b>Arriba a la derecha &mdash; escalar.</b> Rinden sobre el equilibrio y ya mueven volumen.</div>
+      <div><b>Arriba a la izquierda &mdash; probar m&aacute;s.</b> Rinden bien pero con poco gasto: hay espacio.</div>
+      <div><b>Abajo a la derecha &mdash; corregir o cortar.</b> Mucho gasto bajo el equilibrio; es donde se pierde plata.</div>
+      <div><b>Abajo a la izquierda &mdash; vigilar.</b> No rinden, pero tampoco pesan todav&iacute;a.</div>
+    </div>
+  </div>
+</div>
+
+<div class="panel" id="p-con" hidden>
+  <div class="card">
+    <p class="ph">Qui&eacute;n aporta y qui&eacute;n resta margen</p>
+    <p class="psub" id="ps-wf"></p>
+    <div class="cw4"><canvas id="c-wf"></canvas></div>
+  </div>
+  <div class="card">
+    <p class="ph">Margen acumulado en el per&iacute;odo</p>
+    <p class="psub">Suma corrida del margen despu&eacute;s de publicidad. Si la curva cruza el cero hacia arriba, ese es el d&iacute;a en que la inversi&oacute;n se pag&oacute; sola.</p>
+    <div class="cw3"><canvas id="c-cum"></canvas></div>
+  </div>
+</div>
+
+<div class="panel" id="p-emb" hidden>
+  <div class="card">
+    <p class="ph">Del impacto a la compra</p>
+    <p class="psub">Cada escal&oacute;n con su n&uacute;mero y, entre medio, el porcentaje que pasa al siguiente. Las barras comparan el per&iacute;odo actual con el anterior en la misma escala.</p>
+    <div class="fn" id="fn"></div>
+  </div>
+</div>
+
+<div class="panel" id="p-mez" hidden>
+  <div class="card">
+    <p class="ph">En qu&eacute; se reparti&oacute; la inversi&oacute;n</p>
+    <p class="psub">Participaci&oacute;n de cada campa&ntilde;a sobre el gasto del per&iacute;odo. Muestra c&oacute;mo se movi&oacute; el presupuesto en el tiempo.</p>
+    <div class="cw3"><canvas id="c-mix"></canvas></div>
+  </div>
+  <div class="card">
+    <p class="ph">Rendimiento por d&iacute;a de la semana</p>
+    <p class="psub">ROAS promedio de cada d&iacute;a en el per&iacute;odo, con el gasto debajo. Sirve para decidir qu&eacute; d&iacute;as merecen m&aacute;s presupuesto.</p>
+    <div id="hm"></div>
+  </div>
 </div>
 
 <div class="card">
   <h3>Ranking de campa&ntilde;as</h3>
   <div class="scroll"><table id="trank"></table></div>
+  <div class="note">Haz clic en una fila para ver esa campa&ntilde;a sola en todos los gr&aacute;ficos.</div>
 </div>
 
 <div class="card">
@@ -330,7 +450,7 @@ function buildPlats(){
   });
 }
 
-const activo=k=>sel.has(k)&&plats.has(CAMPS.get(k).p);
+const activo=k=>foco?k===foco:(sel.has(k)&&plats.has(CAMPS.get(k).p));
 
 function buildChips(){
   const tot=new Map();
@@ -355,15 +475,7 @@ document.getElementById("all").onclick=()=>setSel(order.map(t=>t.k));
 document.getElementById("none").onclick=()=>setSel([]);
 document.getElementById("top").onclick=()=>setSel(order.filter(t=>plats.has(t.p)).slice(0,5).map(t=>t.k));
 
-const sbox=document.getElementById("series");
-SER.forEach(s=>{
-  const d=document.createElement("div");
-  d.className="s-t"+(s.on?" on":"");
-  d.innerHTML='<i style="background:'+COL[s.k]+'"></i>'+s.n;
-  d.onclick=()=>{s.on=!s.on;d.classList.toggle("on",s.on);render()};
-  sbox.appendChild(d);
-});
-function on(k){return SER.find(s=>s.k===k).on}
+
 
 function applyPreset(){
   const v=elP.value, end=parse(LAST);
@@ -465,13 +577,274 @@ function avisos(faltan){
   msg.innerHTML=h;
 }
 
+/* ===================== analitica ===================== */
+const INK="#898781", GRID="#e1e0d9", TXT="#52514e";
+const POS="#2a78d6", NEG="#d03b3b", NEU="#52514e";
+const SEQ=["#cde2fb","#9ec5f4","#6da7ec","#3987e5","#256abf","#184f95"];
+const CAT=["#2a78d6","#eb6834","#1baf7a","#eda100","#e87ba4","#008300","#6250d6"];
+const DIAS=["dom","lun","mar","mié","jue","vie","sáb"];
+const CH={};
+let tab="tend", foco=null, ultimo=null;
+
+function mk(id,cfg){
+  const el=document.getElementById(id);
+  if(!el)return;
+  if(CH[id]){CH[id].destroy();delete CH[id]}
+  CH[id]=new Chart(el,cfg);
+}
+const ejeX={grid:{display:false},border:{color:GRID},ticks:{font:{size:10},color:INK,maxRotation:60,autoSkip:true,maxTicksLimit:14}};
+const ejeY=(cb)=>({grid:{color:GRID},border:{display:false},ticks:{font:{size:10},color:INK,callback:cb}});
+const sinLeyenda={legend:{display:false}};
+const leyenda={legend:{display:true,position:"bottom",labels:{usePointStyle:true,boxWidth:8,font:{size:11},color:TXT}}};
+const kMil=v=>"$"+nf.format(Math.round(v/1000))+"K";
+
+/* ---- foco ---- */
+function pintarFoco(){
+  const d=document.getElementById("foco");
+  if(!foco||!CAMPS.has(foco)){d.className="foco";d.innerHTML="";return}
+  const c=CAMPS.get(foco);
+  d.className="foco on";
+  d.innerHTML='Viendo solo <b>'+c.n+'</b> <span class="bdg '+c.p+'">'+(c.p==="meta"?"M":"G")+'</span>'+
+              '<button id="salirFoco">Ver todas</button>';
+  document.getElementById("salirFoco").onclick=()=>setFoco(null);
+}
+function setFoco(k){
+  foco=(k&&k!==foco)?k:null;
+  pintarFoco();render();
+}
+
+/* ---- pestanas ---- */
+document.getElementById("tabs").querySelectorAll(".tab").forEach(b=>{
+  b.onclick=()=>{
+    tab=b.dataset.t;
+    document.getElementById("tabs").querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x===b));
+    ["tend","efi","con","emb","mez"].forEach(t=>document.getElementById("p-"+t).hidden=(t!==tab));
+    if(ultimo)pintarTab();
+  };
+});
+
+/* ---- series diarias por campana (para sparklines y mezcla) ---- */
+function porCampanaDia(a,b){
+  const ia=iso(a), ib=iso(b), m=new Map();
+  DROWS.forEach(r=>{
+    if(r.d<ia||r.d>ib||!activo(r.k))return;
+    if(!m.has(r.k))m.set(r.k,new Map());
+    const s=m.get(r.k), v=s.get(r.d)||[0,0];
+    s.set(r.d,[v[0]+r.sp,v[1]+r.va]);
+  });
+  return m;
+}
+function sparkline(vals,color){
+  if(!vals.length)return "";
+  const w=92,h=24,mx=Math.max(...vals,1);
+  const pts=vals.map((v,i)=>{
+    const x=vals.length>1?(i/(vals.length-1))*(w-2)+1:w/2;
+    const y=h-1-(v/mx)*(h-3);
+    return x.toFixed(1)+","+y.toFixed(1);
+  }).join(" ");
+  return '<svg class="spark" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" aria-hidden="true">'+
+         '<polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg>';
+}
+
+/* ---- tendencia ---- */
+function pintarTendencia(cur,be,days){
+  const lab=cur.b.map(x=>fmt(x.k)), pr=days>45?0:3;
+  mk("c-gv",{type:"bar",data:{labels:lab,datasets:[
+      {label:"Inversión",data:cur.b.map(x=>x.sp),backgroundColor:CAT[0],borderRadius:4,maxBarThickness:14},
+      {label:"Valor conv.",data:cur.b.map(x=>x.va),backgroundColor:CAT[2],borderRadius:4,maxBarThickness:14}]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
+      plugins:Object.assign({},leyenda,{tooltip:{callbacks:{label:x=>x.dataset.label+": "+clp(x.parsed.y)}}}),
+      scales:{x:ejeX,y:ejeY(kMil)}}});
+
+  const ro=cur.b.map(x=>x.sp?+(x.va/x.sp).toFixed(2):null);
+  const sobre=ro.filter(v=>v!==null&&v>=be).length, con=ro.filter(v=>v!==null).length;
+  document.getElementById("ps-roas").textContent=
+    "La línea gris es el "+be.toFixed(2)+"x que necesitas para no perder con "+margin+"% de margen. "+
+    sobre+" de "+con+" "+(cur.unit==="día"?"días":"semanas")+" quedaron sobre esa línea.";
+  mk("c-roas",{type:"line",data:{labels:lab,datasets:[
+      {label:"ROAS",data:ro,borderColor:CAT[1],backgroundColor:CAT[1],borderWidth:2,tension:.25,pointRadius:pr,spanGaps:true,fill:false},
+      {label:"Equilibrio",data:lab.map(()=>+be.toFixed(2)),borderColor:"#c3c2b7",borderWidth:1.5,pointRadius:0,fill:false}]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
+      plugins:Object.assign({},leyenda,{tooltip:{callbacks:{label:x=>x.dataset.label+": "+x.parsed.y.toFixed(2)+"x"}}}),
+      scales:{x:ejeX,y:Object.assign({beginAtZero:true},ejeY(v=>v.toFixed(1)+"x"))}}});
+
+  const uno=(id,datos,color,suf,dec)=>mk(id,{type:"line",data:{labels:lab,datasets:[
+      {data:datos,borderColor:color,backgroundColor:color,borderWidth:2,tension:.25,pointRadius:pr,spanGaps:true,fill:false}]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
+      plugins:Object.assign({},sinLeyenda,{tooltip:{callbacks:{label:x=>x.parsed.y.toFixed(dec)+suf}}}),
+      scales:{x:ejeX,y:Object.assign({beginAtZero:true},ejeY(v=>v.toFixed(dec>2?2:1)+suf))}}});
+  uno("c-ctr",cur.b.map(x=>x.im?+(x.cl/x.im*100).toFixed(2):null),CAT[6],"%",2);
+  uno("c-cvr",cur.b.map(x=>x.cl?+(x.pu/x.cl*100).toFixed(3):null),CAT[3],"%",3);
+}
+
+/* ---- eficiencia ---- */
+function pintarEficiencia(cur,be){
+  const vivos=cur.c.filter(x=>x.sp>0);
+  const maxPu=Math.max(1,...vivos.map(x=>x.pu));
+  const maxSp=Math.max(1,...vivos.map(x=>x.sp));
+  const porPlat={};
+  vivos.forEach(x=>{
+    const c=CAMPS.get(x.k);
+    (porPlat[c.p]=porPlat[c.p]||[]).push({
+      x:x.sp,y:x.sp?+(x.va/x.sp).toFixed(2):0,
+      r:5+13*Math.sqrt(x.pu/maxPu), k:x.k, n:c.n, pu:x.pu, va:x.va});
+  });
+  const ds=Object.keys(porPlat).map(p=>({
+    label:PNOM[p],data:porPlat[p],backgroundColor:PCOL[p]+"cc",borderColor:"#fcfcfb",borderWidth:2}));
+  const topX=maxSp*1.14;
+  ds.push({type:"line",label:"Equilibrio "+be.toFixed(2)+"x",
+    data:[{x:0,y:be},{x:topX,y:be}],borderColor:"#9a9890",borderWidth:1.5,pointRadius:0,fill:false});
+  const marcar=new Set(vivos.slice().sort((p,q)=>q.sp-p.sp).slice(0,3).map(x=>x.k));
+  const peor=vivos.slice().sort((p,q)=>(p.va*margin/100-p.sp)-(q.va*margin/100-q.sp))[0];
+  if(peor&&peor.va*margin/100-peor.sp<0)marcar.add(peor.k);
+  const etiquetas={id:"etq",afterDatasetsDraw(ch){
+    const g=ch.ctx;g.save();g.font="11px system-ui,-apple-system,sans-serif";g.fillStyle="#52514e";
+    ch.data.datasets.forEach((d,di)=>{
+      if(d.type==="line")return;
+      d.data.forEach((p,i)=>{
+        if(!marcar.has(p.k))return;
+        const el=ch.getDatasetMeta(di).data[i];if(!el)return;
+        let t=p.n;if(t.length>22)t=t.slice(0,21)+"\u2026";
+        const w=g.measureText(t).width, r=el.options.radius||6;
+        let x=el.x+r+6;
+        if(x+w>ch.chartArea.right)x=el.x-r-6-w;
+        g.fillText(t,Math.max(ch.chartArea.left,x),el.y+4);
+      });
+    });
+    g.restore();
+  }};
+  mk("c-sc",{type:"bubble",data:{datasets:ds},plugins:[etiquetas],
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:Object.assign({},leyenda,{tooltip:{callbacks:{label:x=>{
+        const d=x.raw; if(d.n===undefined)return "Equilibrio "+be.toFixed(2)+"x";
+        return [d.n,"Gasto "+clp(d.x)+"  ·  ROAS "+d.y.toFixed(2)+"x",d.pu+" compras  ·  valor "+clp(d.va)];
+      }}}}),
+      onClick:(e,els)=>{if(els.length){const d=ds[els[0].datasetIndex].data[els[0].index];if(d&&d.k)setFoco(d.k)}},
+      scales:{
+        x:Object.assign({title:{display:true,text:"Inversión en el período",color:INK,font:{size:11}},min:0,max:topX},ejeY(kMil),{grid:{color:GRID}}),
+        y:Object.assign({title:{display:true,text:"ROAS",color:INK,font:{size:11}},beginAtZero:true},ejeY(v=>v.toFixed(1)+"x"))}}});
+}
+
+/* ---- contribucion ---- */
+function pintarContribucion(cur,be,a,b){
+  const items=cur.c.map(x=>({k:x.k,n:CAMPS.get(x.k).n,m:x.va*margin/100-x.sp}))
+                   .filter(x=>Math.abs(x.m)>0).sort((p,q)=>q.m-p.m);
+  const N=12;
+  let lista=items;
+  if(items.length>N+1){
+    const resto=items.slice(N).reduce((s,x)=>s+x.m,0);
+    lista=items.slice(0,N).concat([{k:null,n:"Otras ("+(items.length-N)+")",m:resto}]);
+  }
+  const barras=[],cols=[],labs=[];
+  let run=0;
+  lista.forEach(x=>{labs.push(x.n);barras.push([run,run+x.m]);cols.push(x.m>=0?POS:NEG);run+=x.m});
+  labs.push("Total");barras.push([0,run]);cols.push(NEU);
+  const gan=items.filter(x=>x.m>0).reduce((s,x)=>s+x.m,0);
+  const per=items.filter(x=>x.m<0).reduce((s,x)=>s+x.m,0);
+  document.getElementById("ps-wf").textContent=
+    "Cada barra es el margen que deja una campaña después de pagar su publicidad, con "+margin+"% de margen bruto. "+
+    "Las que suman aportan "+clp(gan)+" y las que restan se llevan "+clp(Math.abs(per))+"; el neto del período es "+clp(run)+".";
+  const alto=Math.max(260,labs.length*30+56);
+  document.getElementById("c-wf").parentElement.style.height=alto+"px";
+  mk("c-wf",{type:"bar",data:{labels:labs,datasets:[{data:barras,backgroundColor:cols,borderRadius:4,maxBarThickness:26}]},
+    options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,
+      plugins:Object.assign({},sinLeyenda,{tooltip:{callbacks:{label:x=>{
+        const v=x.raw[1]-x.raw[0];return (v>=0?"Aporta ":"Resta ")+clp(Math.abs(v))}}}}),
+      scales:{x:Object.assign({},ejeY(kMil),{grid:{color:GRID}}),
+              y:{grid:{display:false},border:{color:GRID},ticks:{font:{size:10},color:TXT,autoSkip:false,
+                 callback:function(v){const s=this.getLabelForValue(v);return s.length>26?s.slice(0,25)+"…":s}}}}}});
+
+  const ia=iso(a), ib=iso(b), dia=new Map();
+  for(let d=new Date(a);d<=b;d=addD(d,1))dia.set(iso(d),0);
+  DROWS.forEach(r=>{
+    if(r.d<ia||r.d>ib||!activo(r.k)||!dia.has(r.d))return;
+    dia.set(r.d,dia.get(r.d)+(r.va*margin/100-r.sp));
+  });
+  const fechas=[...dia.keys()].sort();
+  let ac=0; const serie=fechas.map(f=>{ac+=dia.get(f);return Math.round(ac)});
+  mk("c-cum",{type:"line",data:{labels:fechas.map(fmt),datasets:[
+      {data:serie,borderColor:serie.length&&serie[serie.length-1]>=0?POS:NEG,borderWidth:2,tension:.2,pointRadius:0,fill:false},
+      {data:fechas.map(()=>0),borderColor:"#c3c2b7",borderWidth:1.5,pointRadius:0,fill:false}]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
+      plugins:Object.assign({},sinLeyenda,{tooltip:{callbacks:{label:x=>x.datasetIndex?"Cero":"Acumulado: "+clp(x.parsed.y)}}}),
+      scales:{x:ejeX,y:ejeY(kMil)}}});
+}
+
+/* ---- embudo ---- */
+function pintarEmbudo(T,P){
+  const pasos=[["Impresiones",T.im,P?P.im:null],["Clics",T.cl,P?P.cl:null],["Compras",T.pu,P?P.pu:null]];
+  const tasas=[["CTR",T.im?T.cl/T.im*100:0,P&&P.im?P.cl/P.im*100:null,2],
+               ["Conversión",T.cl?T.pu/T.cl*100:0,P&&P.cl?P.pu/P.cl*100:null,3]];
+  let h="";
+  pasos.forEach((s,i)=>{
+    const mx=Math.max(s[1],s[2]||0,1);
+    h+='<div class="st"><div class="lb">'+s[0]+'</div><div class="nm">'+nf.format(s[1])+delta(s[1],s[2])+'</div>'+
+       '<div class="track"><div class="fill" style="width:'+(s[1]/mx*100).toFixed(1)+'%;background:'+SEQ[1+i*2]+'"></div></div>'+
+       (s[2]!==null?'<div class="track" style="height:5px"><div class="fill" style="width:'+(s[2]/mx*100).toFixed(1)+'%;background:#dcdbd4"></div></div><div class="prev">antes '+nf.format(s[2])+'</div>':'')+
+       '</div>';
+    if(i<tasas.length){
+      const t=tasas[i];
+      h+='<div class="gap"><span class="rate">'+t[1].toFixed(t[3])+'%</span><span class="rlb">'+t[0]+'</span>'+
+         (t[2]!==null?'<span class="rlb">antes '+t[2].toFixed(t[3])+'%</span>'+delta(t[1],t[2]):'')+'</div>';
+    }
+  });
+  document.getElementById("fn").innerHTML=h;
+}
+
+/* ---- mezcla ---- */
+function pintarMezcla(cur,a,b){
+  const porC=porCampanaDia(a,b);
+  const tot=[...porC.entries()].map(([k,s])=>({k:k,sp:[...s.values()].reduce((x,v)=>x+v[0],0)}))
+             .sort((x,y)=>y.sp-x.sp);
+  const top=tot.slice(0,6).map(x=>x.k), resto=tot.slice(6).map(x=>x.k);
+  const fechas=cur.b.map(x=>x.k);
+  const serie=k=>fechas.map(f=>{const s=porC.get(k);return s&&s.get(f)?s.get(f)[0]:0});
+  const capas=[];
+  if(resto.length)capas.push({k:null,n:"Otras ("+resto.length+")",c:"#dcdbd4",
+    v:fechas.map(f=>resto.reduce((s,k)=>s+(porC.get(k)&&porC.get(k).get(f)?porC.get(k).get(f)[0]:0),0))});
+  top.forEach((k,i)=>capas.push({k:k,n:CAMPS.get(k).n,c:CAT[i],v:serie(k)}));
+  const totDia=fechas.map((f,j)=>capas.reduce((s,c)=>s+c.v[j],0));
+  mk("c-mix",{type:"line",data:{labels:fechas.map(fmt),datasets:capas.map(c=>({
+      label:c.n,data:c.v.map((v,j)=>totDia[j]?+(v/totDia[j]*100).toFixed(1):0),
+      backgroundColor:c.c,borderColor:c.c,borderWidth:0,pointRadius:0,fill:true,tension:.2}))},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
+      plugins:Object.assign({},leyenda,{tooltip:{callbacks:{label:x=>x.dataset.label+": "+x.parsed.y.toFixed(1)+"%"}}}),
+      scales:{x:ejeX,y:Object.assign({stacked:true,beginAtZero:true,max:100},ejeY(v=>v+"%"))}}});
+
+  const ia=iso(a), ib=iso(b), sem=DIAS.map(()=>({sp:0,va:0}));
+  DROWS.forEach(r=>{
+    if(r.d<ia||r.d>ib||!activo(r.k))return;
+    const w=parse(r.d).getDay();
+    sem[w].sp+=r.sp;sem[w].va+=r.va;
+  });
+  const ros=sem.map(x=>x.sp?x.va/x.sp:0), mxr=Math.max(...ros,0.01);
+  let hh='<div class="hm">'+DIAS.map(d=>'<div class="d">'+d+'</div>').join("")+'</div><div class="hm">';
+  sem.forEach((x,i)=>{
+    const r=ros[i], paso=x.sp?SEQ[Math.min(5,Math.floor(r/mxr*5.99))]:"#f3f2ee";
+    const oscuro=x.sp&&r/mxr>0.62;
+    hh+='<div class="c" style="background:'+paso+';color:'+(oscuro?"#fff":"#1a1a19")+'">'+
+        '<div class="v">'+(x.sp?r.toFixed(2)+"x":"—")+'</div>'+
+        '<div class="s">'+(x.sp?kMil(x.sp):"sin gasto")+'</div></div>';
+  });
+  document.getElementById("hm").innerHTML=hh+'</div>';
+}
+
+function pintarTab(){
+  const u=ultimo;
+  if(tab==="tend")pintarTendencia(u.cur,u.be,u.days);
+  else if(tab==="efi")pintarEficiencia(u.cur,u.be);
+  else if(tab==="con")pintarContribucion(u.cur,u.be,u.a,u.b);
+  else if(tab==="emb")pintarEmbudo(u.T,u.P);
+  else if(tab==="mez")pintarMezcla(u.cur,u.a,u.b);
+}
+
 function render(){
   if(!CAMPS.size)return;
   let a=parse(el1.value||FIRST), b=parse(el2.value||LAST);
   if(a>b){const t=a;a=b;b=t}
   const days=Math.round((b-a)/864e5)+1;
   const cur=agg(a,b), T=sum(cur);
-  document.getElementById("rng").textContent=fmt(iso(a))+" \u2013 "+fmt(iso(b))+" \u00b7 "+days+" d\u00edas \u00b7 por "+cur.unit;
+  document.getElementById("rng").textContent=fmt(iso(a))+" – "+fmt(iso(b))+" · "+days+" días · por "+cur.unit;
 
   let P=null;
   if(document.getElementById("cmp").value==="prev"){
@@ -480,88 +853,84 @@ function render(){
   }
   const be=100/margin, contrib=T.va*margin/100-T.sp;
   const roas=T.sp?T.va/T.sp:0, cvr=T.cl?T.pu/T.cl*100:0, ctr=T.im?T.cl/T.im*100:0;
+  ultimo={cur:cur,T:T,P:P,be:be,days:days,a:a,b:b};
+
   document.getElementById("be").textContent="ROAS de equilibrio "+be.toFixed(2)+"x";
   document.getElementById("kpis").innerHTML=
-    kpi("Inversi\u00f3n total",clp(T.sp),P?"antes "+clp(P.sp)+delta(T.sp,P.sp):days+" d\u00edas")+
+    kpi("Inversión total",clp(T.sp),P?"antes "+clp(P.sp)+delta(T.sp,P.sp):days+" días")+
     kpi("Valor conv.",clp(T.va),P?"antes "+clp(P.va)+delta(T.va,P.va):T.pu+" compras")+
-    kpi("ROAS combinado",roas.toFixed(2)+"x",P&&P.sp?"antes "+(P.va/P.sp).toFixed(2)+"x"+delta(roas,P.va/P.sp):"equilibrio "+be.toFixed(2)+"x",roas>=be?"good":"bad")+
+    kpi("ROAS",roas.toFixed(2)+"x",P&&P.sp?"antes "+(P.va/P.sp).toFixed(2)+"x"+delta(roas,P.va/P.sp):"equilibrio "+be.toFixed(2)+"x",roas>=be?"good":"bad")+
     kpi("Margen tras ads",clp(contrib),"con "+margin+"% de margen",contrib>=0?"good":"bad")+
-    kpi("Compras",T.pu,P?"antes "+P.pu+delta(T.pu,P.pu):"\u2014")+
-    kpi("Conversi\u00f3n",cvr.toFixed(3)+"%",P&&P.cl?"antes "+(P.pu/P.cl*100).toFixed(3)+"%"+delta(cvr,P.pu/P.cl*100):"compras / clics")+
-    kpi("CPA",T.pu?clp(T.sp/T.pu):"\u2014",P&&P.pu?"antes "+clp(P.sp/P.pu)+delta(P.sp/P.pu,T.sp/T.pu):"costo por compra")+
-    kpi("Ticket prom.",T.pu?clp(T.va/T.pu):"\u2014","valor / compras")+
+    kpi("Compras",T.pu,P?"antes "+P.pu+delta(T.pu,P.pu):"—")+
+    kpi("Conversión",cvr.toFixed(3)+"%",P&&P.cl?"antes "+(P.pu/P.cl*100).toFixed(3)+"%"+delta(cvr,P.pu/P.cl*100):"compras / clics")+
+    kpi("CPA",T.pu?clp(T.sp/T.pu):"—",P&&P.pu?"antes "+clp(P.sp/P.pu)+delta(P.sp/P.pu,T.sp/T.pu):"costo por compra")+
+    kpi("Ticket prom.",T.pu?clp(T.va/T.pu):"—","valor / compras")+
     kpi("CTR",ctr.toFixed(2)+"%",P&&P.im?"antes "+(P.cl/P.im*100).toFixed(2)+"%"+delta(ctr,P.cl/P.im*100):nf.format(T.cl)+" clics")+
-    kpi("CPC",T.cl?clp(T.sp/T.cl):"\u2014",P&&P.cl?"antes "+clp(P.sp/P.cl)+delta(P.sp/P.cl,T.sp/T.cl):"costo por clic");
+    kpi("CPC",T.cl?clp(T.sp/T.cl):"—",P&&P.cl?"antes "+clp(P.sp/P.cl)+delta(P.sp/P.cl,T.sp/T.cl):"costo por clic");
 
-  let ph='<thead><tr><th>Plataforma</th><th>Inversi\u00f3n</th><th>Part.</th><th>Valor conv.</th><th>ROAS</th><th>Compras</th><th>CPA</th><th>Ticket</th><th>Margen tras ads</th></tr></thead><tbody>';
+  let ph='<thead><tr><th>Plataforma</th><th>Inversión</th><th>Part.</th><th>Valor conv.</th><th>ROAS</th><th>Compras</th><th>CPA</th><th>Ticket</th><th>Margen tras ads</th></tr></thead><tbody>';
   const pls=[...cur.pl.values()].sort((x,y)=>y.sp-x.sp);
   pls.forEach(x=>{
     const r=x.sp?x.va/x.sp:0, mg=x.va*margin/100-x.sp;
     ph+='<tr><td><span class="bdg '+x.p+'">'+(x.p==="meta"?"M":"G")+'</span> '+PNOM[x.p]+'</td>'+
         '<td>'+clp(x.sp)+'</td><td>'+(T.sp?(x.sp/T.sp*100).toFixed(0):0)+'%</td><td>'+clp(x.va)+'</td>'+
         '<td class="'+(r>=be?"good":"bad")+'">'+r.toFixed(2)+'x</td><td>'+x.pu+'</td>'+
-        '<td>'+(x.pu?clp(x.sp/x.pu):"\u2014")+'</td><td>'+(x.pu?clp(x.va/x.pu):"\u2014")+'</td>'+
+        '<td>'+(x.pu?clp(x.sp/x.pu):"—")+'</td><td>'+(x.pu?clp(x.va/x.pu):"—")+'</td>'+
         '<td class="'+(mg>=0?"good":"bad")+'">'+clp(mg)+'</td></tr>';
   });
   if(!pls.length)ph+='<tr><td colspan="9" style="text-align:center;color:#8a8a84;padding:20px">Sin datos en este rango</td></tr>';
   document.getElementById("tplat").innerHTML=ph+'</tbody>';
 
-  const lab=cur.b.map(x=>fmt(x.k));
-  const ds=[];
-  if(on("sp"))ds.push({type:"bar",label:"Gasto",yAxisID:"y",data:cur.b.map(x=>x.sp),backgroundColor:COL.sp,borderRadius:3,maxBarThickness:12,order:5});
-  if(on("va"))ds.push({type:"bar",label:"Valor conv.",yAxisID:"y",data:cur.b.map(x=>x.va),backgroundColor:COL.va,borderRadius:3,maxBarThickness:12,order:5});
-  if(on("ro")){
-    ds.push({type:"line",label:"ROAS",yAxisID:"y1",data:cur.b.map(x=>x.sp?+(x.va/x.sp).toFixed(2):null),borderColor:COL.ro,backgroundColor:COL.ro,borderWidth:2,tension:.25,pointRadius:days>45?0:3,fill:false,spanGaps:true,order:1});
-    ds.push({type:"line",label:"Equilibrio",yAxisID:"y1",data:cur.b.map(()=>+be.toFixed(2)),borderColor:"#b9b8b1",borderWidth:1,borderDash:[4,4],pointRadius:0,fill:false,order:2});
-  }
-  if(on("ct"))ds.push({type:"line",label:"CTR",yAxisID:"y2",data:cur.b.map(x=>x.im?+(x.cl/x.im*100).toFixed(2):null),borderColor:COL.ct,borderWidth:2,borderDash:[6,3],tension:.25,pointRadius:days>45?0:3,fill:false,spanGaps:true,order:1});
-  if(on("cv"))ds.push({type:"line",label:"Conversi\u00f3n",yAxisID:"y3",data:cur.b.map(x=>x.cl?+(x.pu/x.cl*100).toFixed(3):null),borderColor:COL.cv,borderWidth:2,borderDash:[2,2],tension:.25,pointRadius:days>45?0:3,fill:false,spanGaps:true,order:1});
+  pintarTab();
 
-  if(chart)chart.destroy();
-  chart=new Chart(document.getElementById("cc"),{data:{labels:lab,datasets:ds},options:{
-    responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
-    plugins:{legend:{display:true,position:"bottom",labels:{usePointStyle:true,boxWidth:8,font:{size:11},color:"#6b6b66"}},
-      tooltip:{callbacks:{label:x=>{const l=x.dataset.label,v=x.parsed.y;
-        if(l==="ROAS"||l==="Equilibrio")return l+": "+v.toFixed(2)+"x";
-        if(l==="CTR")return "CTR: "+v.toFixed(2)+"%";
-        if(l==="Conversi\u00f3n")return "Conversi\u00f3n: "+v.toFixed(3)+"%";
-        return l+": "+clp(v)}}}},
-    scales:{
-      x:{grid:{display:false},ticks:{font:{size:10},color:"#8a8a84",maxRotation:60,autoSkip:true,maxTicksLimit:16}},
-      y:{position:"left",display:on("sp")||on("va"),grid:{color:"#ecece6"},border:{display:false},ticks:{font:{size:10},color:"#8a8a84",callback:v=>"$"+nf.format(Math.round(v/1000))+"K"}},
-      y1:{position:"right",display:on("ro"),beginAtZero:true,grid:{display:false},border:{display:false},ticks:{font:{size:10},color:COL.ro,callback:v=>v.toFixed(1)+"x"}},
-      y2:{position:"right",display:on("ct"),beginAtZero:true,grid:{display:false},border:{display:false},ticks:{font:{size:10},color:COL.ct,callback:v=>v.toFixed(1)+"%"}},
-      y3:{position:"right",display:on("cv"),beginAtZero:true,grid:{display:false},border:{display:false},ticks:{font:{size:10},color:COL.cv,callback:v=>v.toFixed(2)+"%"}}
-    }}});
-
-  const cols=[["n","Campa\u00f1a"],["sp","Gasto"],["va","Valor conv."],["roas","ROAS"],["cvr","Conv."],["cpa","CPA"],["ticket","Ticket"],["ctr","CTR"],["cpc","CPC"],["pu","Compras"]];
-  const rows=cur.c.map(x=>{
+  /* ---- ranking con tendencia por campana ---- */
+  const porC=porCampanaDia(a,b), fechas=cur.b.map(x=>x.k);
+  const cols=[["n","Campaña"],["tend","Tendencia"],["sp","Gasto"],["va","Valor conv."],["roas","ROAS"],["mg","Margen"],["cvr","Conv."],["cpa","CPA"],["ticket","Ticket"],["ctr","CTR"],["cpc","CPC"],["pu","Compras"]];
+  const filas=cur.c.map(x=>{
     const c=CAMPS.get(x.k);
-    return {n:c.n,p:c.p,sp:x.sp,va:x.va,pu:x.pu,roas:x.sp?x.va/x.sp:0,cvr:x.cl?x.pu/x.cl*100:0,
+    return {k:x.k,n:c.n,p:c.p,sp:x.sp,va:x.va,pu:x.pu,
+            roas:x.sp?x.va/x.sp:0,mg:x.va*margin/100-x.sp,cvr:x.cl?x.pu/x.cl*100:0,
             cpa:x.pu?x.sp/x.pu:0,ticket:x.pu?x.va/x.pu:0,ctr:x.im?x.cl/x.im*100:0,cpc:x.cl?x.sp/x.cl:0};
   });
-  rows.sort((p,q)=>sortKey==="n"?p.n.localeCompare(q.n):q[sortKey]-p[sortKey]);
+  filas.sort((p,q)=>sortKey==="n"?p.n.localeCompare(q.n):(sortKey==="tend"?q.sp-p.sp:q[sortKey]-p[sortKey]));
   let h='<thead><tr>'+cols.map(k=>'<th data-k="'+k[0]+'">'+k[1]+'</th>').join("")+'</tr></thead><tbody>';
-  rows.forEach(x=>{h+='<tr><td><span class="bdg '+x.p+'">'+(x.p==="meta"?"M":"G")+'</span> '+x.n+'</td><td>'+clp(x.sp)+'</td><td>'+clp(x.va)+'</td><td class="'+(x.roas>=be?"good":"bad")+'">'+x.roas.toFixed(2)+'x</td><td>'+x.cvr.toFixed(3)+'%</td><td>'+(x.cpa?clp(x.cpa):"\u2014")+'</td><td>'+(x.ticket?clp(x.ticket):"\u2014")+'</td><td>'+x.ctr.toFixed(2)+'%</td><td>'+clp(x.cpc)+'</td><td>'+x.pu+'</td></tr>'});
-  if(!rows.length)h+='<tr><td colspan="10" style="text-align:center;color:#8a8a84;padding:20px">Sin datos en este rango</td></tr>';
+  filas.forEach(x=>{
+    const s=porC.get(x.k);
+    const sv=cur.unit==="día"&&s?fechas.map(f=>s.get(f)?s.get(f)[0]:0):[];
+    h+='<tr class="clic'+(foco===x.k?" foco":"")+'" data-k="'+x.k+'">'+
+       '<td><span class="bdg '+x.p+'">'+(x.p==="meta"?"M":"G")+'</span> '+x.n+'</td>'+
+       '<td>'+(sv.length>1?sparkline(sv,x.roas>=be?POS:NEG):"")+'</td>'+
+       '<td>'+clp(x.sp)+'</td><td>'+clp(x.va)+'</td>'+
+       '<td class="'+(x.roas>=be?"good":"bad")+'">'+x.roas.toFixed(2)+'x</td>'+
+       '<td class="'+(x.mg>=0?"good":"bad")+'">'+clp(x.mg)+'</td>'+
+       '<td>'+x.cvr.toFixed(3)+'%</td><td>'+(x.cpa?clp(x.cpa):"—")+'</td>'+
+       '<td>'+(x.ticket?clp(x.ticket):"—")+'</td><td>'+x.ctr.toFixed(2)+'%</td>'+
+       '<td>'+clp(x.cpc)+'</td><td>'+x.pu+'</td></tr>';
+  });
+  if(!filas.length)h+='<tr><td colspan="12" style="text-align:center;color:#8a8a84;padding:20px">Sin datos en este rango</td></tr>';
   const tr=document.getElementById("trank");tr.innerHTML=h+'</tbody>';
   tr.querySelectorAll("th").forEach(th=>th.onclick=()=>{sortKey=th.dataset.k;render()});
+  tr.querySelectorAll("tbody tr.clic").forEach(row=>row.onclick=()=>setFoco(row.dataset.k));
 
-  let t='<thead><tr><th>'+(cur.unit==="d\u00eda"?"D\u00eda":"Semana")+'</th><th>Gasto</th><th>Valor conv.</th><th>ROAS</th><th>Conv.</th><th>CTR</th><th>CPC</th><th>Compras</th></tr></thead><tbody>';
-  cur.b.slice().reverse().forEach(x=>{if(!x.sp&&!x.va)return;const r=x.sp?x.va/x.sp:0;
-    t+='<tr><td>'+fmt(x.k)+'</td><td>'+clp(x.sp)+'</td><td>'+clp(x.va)+'</td><td class="'+(r>=be?"good":"bad")+'">'+r.toFixed(2)+'x</td><td>'+(x.cl?(x.pu/x.cl*100).toFixed(3):"0,000")+'%</td><td>'+(x.im?(x.cl/x.im*100).toFixed(2):"0,00")+'%</td><td>'+(x.cl?clp(x.sp/x.cl):"\u2014")+'</td><td>'+x.pu+'</td></tr>'});
+  let t='<thead><tr><th>'+(cur.unit==="día"?"Día":"Semana")+'</th><th>Gasto</th><th>Valor conv.</th><th>ROAS</th><th>Margen</th><th>Conv.</th><th>CTR</th><th>CPC</th><th>Compras</th></tr></thead><tbody>';
+  cur.b.slice().reverse().forEach(x=>{if(!x.sp&&!x.va)return;const r=x.sp?x.va/x.sp:0,mg=x.va*margin/100-x.sp;
+    t+='<tr><td>'+fmt(x.k)+'</td><td>'+clp(x.sp)+'</td><td>'+clp(x.va)+'</td>'+
+       '<td class="'+(r>=be?"good":"bad")+'">'+r.toFixed(2)+'x</td>'+
+       '<td class="'+(mg>=0?"good":"bad")+'">'+clp(mg)+'</td>'+
+       '<td>'+(x.cl?(x.pu/x.cl*100).toFixed(3):"0,000")+'%</td><td>'+(x.im?(x.cl/x.im*100).toFixed(2):"0,00")+'%</td>'+
+       '<td>'+(x.cl?clp(x.sp/x.cl):"—")+'</td><td>'+x.pu+'</td></tr>'});
   document.getElementById("tdet").innerHTML=t+'</tbody>';
 
   document.getElementById("pie").innerHTML=
-    "GitHub vuelve a leer Meta y Google dos veces al d\u00eda, a las 08:00 y a las 14:00 de Santiago, y publica los datos solo; el bot\u00f3n \u201cActualizar datos\u201d relee lo \u00faltimo publicado, sin cach\u00e9. "+
-    "Los rangos que empiezan antes del "+fmt(iso(dstart))+" usan la serie semanal, que agrupa por semanas completas y puede desbordar los bordes del rango. "+
-    "Ojo al sumar plataformas: Meta atribuye a 7 d\u00edas clic / 1 d\u00eda visualizaci\u00f3n y Google usa su propio modelo, as\u00ed que una misma venta puede quedar contada en las dos y el valor combinado no cuadra con la venta real de Shopify. "+
-    "El d\u00eda en curso viene incompleto: ambas plataformas registran el gasto antes que las conversiones.";
+    "GitHub vuelve a leer Meta y Google y publica los datos solo; el botón “Actualizar datos” relee lo último publicado, sin caché. "+
+    "Los rangos que empiezan antes del "+fmt(iso(dstart))+" usan la serie semanal, que agrupa por semanas completas y puede desbordar los bordes del rango; la tendencia por campaña y el mapa de calor solo se dibujan sobre la serie diaria. "+
+    "Ojo al sumar plataformas: Meta atribuye a 7 días clic / 1 día visualización y Google usa su propio modelo, así que una misma venta puede quedar contada en las dos y el valor combinado no cuadra con la venta real de Shopify. "+
+    "El día en curso viene incompleto: ambas plataformas registran el gasto antes que las conversiones.";
 }
 
 (async()=>{
   try{
-    const faltan=await load();buildPlats();buildChips();applyPreset();avisos(faltan);
+    const faltan=await load();buildPlats();buildChips();pintarFoco();applyPreset();avisos(faltan);
   }catch(e){
     document.getElementById("msg").innerHTML='<div class="err">No se pudieron cargar los datos: '+e.message+'</div>';
   }
