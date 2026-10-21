@@ -149,21 +149,42 @@ def main():
     if not nuevas:
         sys.exit("El archivo no traia filas utiles: no se toca nada.")
 
-    # El dia en curso se reescribe cada vez; los cerrados se corrigen si Meta
-    # ajusto las cifras. Nunca se borra un dia que ya existia.
-    cambios = 0
+    # Las cinco metricas son contadores que solo crecen mientras Meta termina
+    # de atribuir, asi que se guarda el maximo entre lo que habia y lo que
+    # llega. Esto protege de un caso real: la API a veces devuelve gasto,
+    # impresiones y clics en cero para una campana-dia que ya tiene compras
+    # atribuidas, y sin esta guarda esos ceros borrarian el dato bueno.
+    # Contrapartida: una correccion a la baja de Meta (un reembolso, por
+    # ejemplo) no se refleja sola; hay que editar data/meta-history.json.
+    # Tampoco se borra una campana que el dia ya tenia y ahora no viene.
+    cambios, recortes = 0, []
     for fecha, campos in nuevas.items():
-        if hist["diario"].get(fecha) != campos:
-            cambios += 1
-        hist["diario"][fecha] = campos
+        dia = hist["diario"].setdefault(fecha, {})
+        for cid, v in campos.items():
+            previo = dia.get(cid)
+            if previo is None:
+                dia[cid] = v
+                cambios += 1
+                continue
+            fusion = [max(previo[i], v[i]) for i in range(5)]
+            if any(v[i] < previo[i] for i in range(5)):
+                recortes.append("%s %s" % (fecha, hist["campanas"].get(cid, cid)))
+            if fusion != previo:
+                dia[cid] = fusion
+                cambios += 1
 
     with open(HIST, "w", encoding="utf-8") as fh:
         json.dump(hist, fh, ensure_ascii=False, separators=(",", ":"))
 
     hasta = max(hist["diario"])
     escribir(*generar(hist), hasta=hasta)
-    print("dias recibidos: %d | dias con cambios: %d | historico hasta: %s"
+    print("dias recibidos: %d | campanas-dia actualizadas: %d | historico hasta: %s"
           % (len(nuevas), cambios, hasta))
+    if recortes:
+        print("Meta devolvio cifras MENORES a las guardadas en %d casos; se "
+              "conservo el valor mayor:" % len(recortes))
+        for r in recortes:
+            print("   " + r)
 
 
 if __name__ == "__main__":
