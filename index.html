@@ -91,6 +91,12 @@ tbody tr:hover{background:#faf9f6}
 .cw2{position:relative;height:230px}
 .cw3{position:relative;height:300px}
 .cw4{position:relative;height:420px}
+.tot{display:flex;flex-wrap:wrap;gap:14px 30px;margin-top:14px;padding-top:12px;border-top:1px solid #eceae3}
+.tot>div{font-size:12px;color:#898781}
+.tot b{display:block;font-size:17px;font-weight:600;color:#1a1a19;margin-top:3px;letter-spacing:-.2px}
+.tot b.good{color:#0f6e56}
+.tot b.bad{color:#a32d2d}
+.tot i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
 .foco{display:none;align-items:center;gap:10px;background:#eef4fb;border:1px solid #a9c9ea;color:#0c447c;border-radius:10px;padding:9px 14px;margin-bottom:16px;font-size:13px}
 .foco.on{display:flex}
 .foco b{font-weight:600}
@@ -186,22 +192,26 @@ tbody tr.foco{background:#eef4fb;box-shadow:inset 3px 0 0 #2a78d6}
     <p class="ph">Inversi&oacute;n y valor de conversi&oacute;n</p>
     <p class="psub">Las dos barras est&aacute;n en pesos, en la misma escala: la distancia entre ellas es el retorno bruto.</p>
     <div class="cw3"><canvas id="c-gv"></canvas></div>
+    <div class="tot" id="t-gv"></div>
   </div>
   <div class="card">
     <p class="ph">ROAS contra el punto de equilibrio</p>
     <p class="psub" id="ps-roas"></p>
     <div class="cw3"><canvas id="c-roas"></canvas></div>
+    <div class="tot" id="t-roas"></div>
   </div>
   <div class="grid2">
     <div class="card">
       <p class="ph">CTR</p>
       <p class="psub">Clics sobre impresiones. Mide si el anuncio llama la atenci&oacute;n.</p>
       <div class="cw2"><canvas id="c-ctr"></canvas></div>
+    <div class="tot" id="t-ctr"></div>
     </div>
     <div class="card">
       <p class="ph">Tasa de conversi&oacute;n</p>
       <p class="psub">Compras sobre clics. Mide si la ficha y el checkout cierran la venta.</p>
       <div class="cw2"><canvas id="c-cvr"></canvas></div>
+    <div class="tot" id="t-cvr"></div>
     </div>
   </div>
 </div>
@@ -211,6 +221,7 @@ tbody tr.foco{background:#eef4fb;box-shadow:inset 3px 0 0 #2a78d6}
     <p class="ph">Mapa de eficiencia</p>
     <p class="psub">Cada burbuja es una campa&ntilde;a: a la derecha las que m&aacute;s gastan, arriba las que mejor devuelven, y el tama&ntilde;o son las compras. La l&iacute;nea marca el equilibrio. Haz clic en una burbuja para aislarla.</p>
     <div class="cw4"><canvas id="c-sc"></canvas></div>
+    <div class="tot" id="t-sc"></div>
     <div class="quad">
       <div><b>Arriba a la derecha &mdash; escalar.</b> Rinden sobre el equilibrio y ya mueven volumen.</div>
       <div><b>Arriba a la izquierda &mdash; probar m&aacute;s.</b> Rinden bien pero con poco gasto: hay espacio.</div>
@@ -225,11 +236,13 @@ tbody tr.foco{background:#eef4fb;box-shadow:inset 3px 0 0 #2a78d6}
     <p class="ph">Qui&eacute;n aporta y qui&eacute;n resta margen</p>
     <p class="psub" id="ps-wf"></p>
     <div class="cw4"><canvas id="c-wf"></canvas></div>
+    <div class="tot" id="t-wf"></div>
   </div>
   <div class="card">
     <p class="ph">Margen acumulado en el per&iacute;odo</p>
     <p class="psub">Suma corrida del margen despu&eacute;s de publicidad. Si la curva cruza el cero hacia arriba, ese es el d&iacute;a en que la inversi&oacute;n se pag&oacute; sola.</p>
     <div class="cw3"><canvas id="c-cum"></canvas></div>
+    <div class="tot" id="t-cum"></div>
   </div>
 </div>
 
@@ -246,6 +259,7 @@ tbody tr.foco{background:#eef4fb;box-shadow:inset 3px 0 0 #2a78d6}
     <p class="ph">En qu&eacute; se reparti&oacute; la inversi&oacute;n</p>
     <p class="psub">Participaci&oacute;n de cada campa&ntilde;a sobre el gasto del per&iacute;odo. Muestra c&oacute;mo se movi&oacute; el presupuesto en el tiempo.</p>
     <div class="cw3"><canvas id="c-mix"></canvas></div>
+    <div class="tot" id="t-mix"></div>
   </div>
   <div class="card">
     <p class="ph">Rendimiento por d&iacute;a de la semana</p>
@@ -599,6 +613,13 @@ function mk(id,cfg){
   if(CH[id]){CH[id].destroy();delete CH[id]}
   CH[id]=new Chart(el,cfg);
 }
+function totales(id,items){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.innerHTML=items.filter(Boolean).map(it=>
+    '<div>'+(it.c?'<i style="background:'+it.c+'"></i>':"")+it.l+
+    '<b'+(it.k?' class="'+it.k+'"':"")+'>'+it.v+'</b></div>').join("");
+}
 const ejeX={grid:{display:false},border:{color:GRID},ticks:{font:{size:10},color:INK,maxRotation:60,autoSkip:true,maxTicksLimit:14}};
 const ejeY=(cb)=>({grid:{color:GRID},border:{display:false},ticks:{font:{size:10},color:INK,callback:cb}});
 const sinLeyenda={legend:{display:false}};
@@ -664,6 +685,25 @@ function sparkline(vals,color,ref){
 /* ---- tendencia ---- */
 function pintarTendencia(cur,be,days){
   const lab=cur.b.map(x=>fmt(x.k)), pr=days>45?0:3;
+  const T=cur.b.reduce((a,x)=>({sp:a.sp+x.sp,va:a.va+x.va,im:a.im+x.im,cl:a.cl+x.cl,pu:a.pu+x.pu}),
+                       {sp:0,va:0,im:0,cl:0,pu:0});
+  const bruto=T.va-T.sp, neto=T.va*margin/100-T.sp;
+  totales("t-gv",[
+    {l:"Inversión del período",v:clp(T.sp),c:CAT[0]},
+    {l:"Valor de conversión",v:clp(T.va),c:CAT[2]},
+    {l:"Retorno bruto",v:clp(bruto),k:bruto>=0?"good":"bad"},
+    {l:"Margen tras ads",v:clp(neto),k:neto>=0?"good":"bad"}
+  ]);
+  totales("t-ctr",[
+    {l:"Impresiones",v:nf.format(T.im)},
+    {l:"Clics",v:nf.format(T.cl)},
+    {l:"CTR del período",v:(T.im?T.cl/T.im*100:0).toFixed(2)+"%",c:CAT[6]}
+  ]);
+  totales("t-cvr",[
+    {l:"Clics",v:nf.format(T.cl)},
+    {l:"Compras",v:nf.format(T.pu)},
+    {l:"Conversión del período",v:(T.cl?T.pu/T.cl*100:0).toFixed(3)+"%",c:CAT[3]}
+  ]);
   mk("c-gv",{type:"bar",data:{labels:lab,datasets:[
       {label:"Inversión",data:cur.b.map(x=>x.sp),backgroundColor:CAT[0],borderRadius:4,maxBarThickness:14},
       {label:"Valor conv.",data:cur.b.map(x=>x.va),backgroundColor:CAT[2],borderRadius:4,maxBarThickness:14}]},
@@ -676,6 +716,11 @@ function pintarTendencia(cur,be,days){
   document.getElementById("ps-roas").textContent=
     "La línea gris es el "+be.toFixed(2)+"x que necesitas para no perder con "+margin+"% de margen. "+
     sobre+" de "+con+" "+(cur.unit==="día"?"días":"semanas")+" quedaron sobre esa línea.";
+  totales("t-roas",[
+    {l:"ROAS del período",v:(T.sp?T.va/T.sp:0).toFixed(2)+"x",c:CAT[1],k:(T.sp?T.va/T.sp:0)>=be?"good":"bad"},
+    {l:"Equilibrio con "+margin+"% de margen",v:be.toFixed(2)+"x"},
+    {l:(cur.unit==="día"?"Días":"Semanas")+" sobre el equilibrio",v:sobre+" de "+con}
+  ]);
   mk("c-roas",{type:"line",data:{labels:lab,datasets:[
       {label:"ROAS",data:ro,borderColor:CAT[1],backgroundColor:CAT[1],borderWidth:2,tension:.25,pointRadius:pr,spanGaps:true,fill:false},
       {label:"Equilibrio",data:lab.map(()=>+be.toFixed(2)),borderColor:"#c3c2b7",borderWidth:1.5,pointRadius:0,fill:false}]},
@@ -697,6 +742,15 @@ function pintarEficiencia(cur,be){
   const vivos=cur.c.filter(x=>x.sp>0);
   const maxPu=Math.max(1,...vivos.map(x=>x.pu));
   const maxSp=Math.max(1,...vivos.map(x=>x.sp));
+  const gTot=vivos.reduce((a,x)=>a+x.sp,0);
+  const arriba=vivos.filter(x=>x.sp&&x.va/x.sp>=be);
+  const gArriba=arriba.reduce((a,x)=>a+x.sp,0);
+  totales("t-sc",[
+    {l:"Campañas con gasto",v:vivos.length},
+    {l:"Sobre el equilibrio",v:arriba.length+" de "+vivos.length,k:arriba.length?"good":"bad"},
+    {l:"Inversión que rinde",v:clp(gArriba),k:"good"},
+    {l:"Inversión bajo el equilibrio",v:clp(gTot-gArriba),k:gTot-gArriba>0?"bad":"good"}
+  ]);
   const porPlat={};
   vivos.forEach(x=>{
     const c=CAMPS.get(x.k);
@@ -757,8 +811,13 @@ function pintarContribucion(cur,be,a,b){
   const gan=items.filter(x=>x.m>0).reduce((s,x)=>s+x.m,0);
   const per=items.filter(x=>x.m<0).reduce((s,x)=>s+x.m,0);
   document.getElementById("ps-wf").textContent=
-    "Cada barra es el margen que deja una campaña después de pagar su publicidad, con "+margin+"% de margen bruto. "+
-    "Las que suman aportan "+clp(gan)+" y las que restan se llevan "+clp(Math.abs(per))+"; el neto del período es "+clp(run)+".";
+    "Cada barra es el margen que deja una campaña después de pagar su publicidad, con "+margin+"% de margen bruto.";
+  totales("t-wf",[
+    {l:"Aportan",v:clp(gan),k:"good"},
+    {l:"Restan",v:clp(Math.abs(per)),k:per?"bad":null},
+    {l:"Neto del período",v:clp(run),k:run>=0?"good":"bad"},
+    {l:"Campañas en azul",v:items.filter(x=>x.m>=0).length+" de "+items.length}
+  ]);
   const alto=Math.max(260,labs.length*30+56);
   document.getElementById("c-wf").parentElement.style.height=alto+"px";
   mk("c-wf",{type:"bar",data:{labels:labs,datasets:[{data:barras,backgroundColor:cols,borderRadius:4,maxBarThickness:26}]},
@@ -777,6 +836,19 @@ function pintarContribucion(cur,be,a,b){
   });
   const fechas=[...dia.keys()].sort();
   let ac=0; const serie=fechas.map(f=>{ac+=dia.get(f);return Math.round(ac)});
+  const cierre=serie.length?serie[serie.length-1]:0;
+  let mejor=null,peor=null;
+  dia.forEach((v,f)=>{
+    if(mejor===null||v>mejor[1])mejor=[f,v];
+    if(peor===null||v<peor[1])peor=[f,v];
+  });
+  const cruce=fechas.find((f,i)=>serie[i]>=0&&(i===0||serie[i-1]<0));
+  totales("t-cum",[
+    {l:"Margen acumulado al cierre",v:clp(cierre),k:cierre>=0?"good":"bad"},
+    {l:"Mejor día",v:mejor?clp(Math.round(mejor[1]))+" · "+fmt(mejor[0]):"—",k:"good"},
+    {l:"Peor día",v:peor?clp(Math.round(peor[1]))+" · "+fmt(peor[0]):"—",k:peor&&peor[1]<0?"bad":null},
+    {l:"Se pagó sola desde",v:cruce?fmt(cruce):"todavía no"}
+  ]);
   mk("c-cum",{type:"line",data:{labels:fechas.map(fmt),datasets:[
       {data:serie,borderColor:serie.length&&serie[serie.length-1]>=0?POS:NEG,borderWidth:2,tension:.2,pointRadius:0,fill:false},
       {data:fechas.map(()=>0),borderColor:"#c3c2b7",borderWidth:1.5,pointRadius:0,fill:false}]},
@@ -812,6 +884,12 @@ function pintarMezcla(cur,a,b){
   const tot=[...porC.entries()].map(([k,s])=>({k:k,sp:[...s.values()].reduce((x,v)=>x+v[0],0)}))
              .sort((x,y)=>y.sp-x.sp);
   const top=tot.slice(0,6).map(x=>x.k), resto=tot.slice(6).map(x=>x.k);
+  const gTot=tot.reduce((a,x)=>a+x.sp,0), gTop=tot.slice(0,6).reduce((a,x)=>a+x.sp,0);
+  totales("t-mix",[
+    {l:"Inversión del período",v:clp(gTot),c:CAT[0]},
+    {l:"Campañas con gasto",v:tot.length},
+    {l:"Las 6 mayores concentran",v:gTot?Math.round(gTop/gTot*100)+"% ("+clp(gTop)+")":"—"}
+  ]);
   const fechas=cur.b.map(x=>x.k);
   const serie=k=>fechas.map(f=>{const s=porC.get(k);return s&&s.get(f)?s.get(f)[0]:0});
   const capas=[];
