@@ -9,7 +9,12 @@
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f6f6f4;color:#1a1a19;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.5}
-.wrap{max-width:1180px;margin:0 auto;padding:24px 18px 60px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 18px 60px}
+.top{position:sticky;top:0;z-index:30;background:#f6f6f4;margin:0 -18px;padding:22px 18px 4px;transition:padding .15s ease}
+.top.fijo{padding-top:10px;box-shadow:0 10px 18px -14px rgba(0,0,0,.55)}
+.top.fijo h1{font-size:15px;margin-bottom:0}
+.top.fijo .sub{display:none}
+.top.fijo .bar{padding:8px 12px;margin-bottom:10px}
 h1{font-size:22px;font-weight:600;margin:0 0 4px}
 .sub{color:#6b6b66;font-size:13px;margin-bottom:18px}
 .card{background:#fff;border:1px solid #e3e2dc;border-radius:12px;padding:16px 18px;margin-bottom:18px}
@@ -72,7 +77,7 @@ tbody tr:hover{background:#faf9f6}
 .warn{font-size:12px;color:#854f0b;background:#faeeda;border-radius:7px;padding:7px 11px;margin-bottom:12px}
 .err{font-size:12px;color:#8c2020;background:#fae3e3;border-radius:7px;padding:7px 11px;margin-bottom:12px}
 .scroll{overflow-x:auto}
-@media(max-width:640px){.kpi .v{font-size:18px}.wrap{padding:16px 12px 40px}.cw{height:320px}.rng{margin-left:0;width:100%}}
+@media(max-width:640px){.kpi .v{font-size:18px}.wrap{padding:0 12px 40px}.top{margin:0 -12px;padding:14px 12px 4px}.cw{height:320px}.rng{margin-left:0;width:100%}}
 /* ---- analitica ---------------------------------------------------- */
 .tabs{display:flex;gap:4px;flex-wrap:wrap;background:#fff;border:1px solid #e3e2dc;border-radius:12px;padding:5px;margin-bottom:18px}
 .tab{flex:1 1 auto;min-width:110px;text-align:center;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:500;color:#52514e;cursor:pointer;user-select:none;border:0;background:transparent;margin:0}
@@ -93,7 +98,7 @@ tbody tr:hover{background:#faf9f6}
 tbody tr.clic{cursor:pointer}
 tbody tr.clic:hover{background:#eef4fb}
 tbody tr.foco{background:#eef4fb;box-shadow:inset 3px 0 0 #2a78d6}
-.spark{display:block}
+.spark{display:inline-block;vertical-align:middle}
 .hm{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
 .hm .c{border-radius:6px;padding:10px 6px;text-align:center;line-height:1.3}
 .hm .d{font-size:11px;color:#898781;text-align:center;padding-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
@@ -118,6 +123,7 @@ tbody tr.foco{background:#eef4fb;box-shadow:inset 3px 0 0 #2a78d6}
 </head>
 <body>
 <div class="wrap">
+<div class="top" id="top">
 <h1>Publicidad 2026 &mdash; Meta + Google</h1>
 <div class="sub" id="sub">Cargando datos&hellip;</div>
 
@@ -144,6 +150,7 @@ tbody tr.foco{background:#eef4fb;box-shadow:inset 3px 0 0 #2a78d6}
   <label for="mg">Margen</label><input type="number" id="mg" min="1" max="99" step="1" value="45" style="width:60px;text-align:right">
   <button id="upd" title="Vuelve a leer los datos publicados, sin cach&eacute;">Actualizar datos</button>
   <span class="rng" id="rng"></span>
+</div>
 </div>
 
 <div id="msg"></div>
@@ -634,16 +641,24 @@ function porCampanaDia(a,b){
   });
   return m;
 }
-function sparkline(vals,color){
-  if(!vals.length)return "";
-  const w=92,h=24,mx=Math.max(...vals,1);
-  const pts=vals.map((v,i)=>{
-    const x=vals.length>1?(i/(vals.length-1))*(w-2)+1:w/2;
-    const y=h-1-(v/mx)*(h-3);
-    return x.toFixed(1)+","+y.toFixed(1);
-  }).join(" ");
-  return '<svg class="spark" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" aria-hidden="true">'+
-         '<polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg>';
+function sparkline(vals,color,ref){
+  const limpios=vals.filter(v=>v!==null&&isFinite(v));
+  if(!limpios.length)return "";
+  const w=92,h=24;
+  const mx=Math.max(...limpios,ref?ref*1.15:0,0.01);
+  const py=v=>h-1-(v/mx)*(h-3);
+  const px=i=>vals.length>1?(i/(vals.length-1))*(w-2)+1:w/2;
+  let d="",sueltos="",abierto=false;
+  vals.forEach((v,i)=>{
+    if(v===null||!isFinite(v)){abierto=false;return}
+    const solo=!abierto&&(i+1>=vals.length||vals[i+1]===null||!isFinite(vals[i+1]));
+    if(solo)sueltos+='<circle cx="'+px(i).toFixed(1)+'" cy="'+py(v).toFixed(1)+'" r="1.6" fill="'+color+'"/>';
+    d+=(abierto?" L":" M")+px(i).toFixed(1)+","+py(v).toFixed(1);
+    abierto=true;
+  });
+  const eq=ref?'<line x1="0" y1="'+py(ref).toFixed(1)+'" x2="'+w+'" y2="'+py(ref).toFixed(1)+'" stroke="#c3c2b7" stroke-width="1" stroke-dasharray="2 2"/>':"";
+  return '<svg class="spark" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" aria-hidden="true">'+eq+
+         '<path d="'+d.trim()+'" fill="none" stroke="'+color+'" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>'+sueltos+'</svg>';
 }
 
 /* ---- tendencia ---- */
@@ -885,7 +900,7 @@ function render(){
 
   /* ---- ranking con tendencia por campana ---- */
   const porC=porCampanaDia(a,b), fechas=cur.b.map(x=>x.k);
-  const cols=[["n","Campaña"],["tend","Tendencia"],["sp","Gasto"],["va","Valor conv."],["roas","ROAS"],["mg","Margen"],["cvr","Conv."],["cpa","CPA"],["ticket","Ticket"],["ctr","CTR"],["cpc","CPC"],["pu","Compras"]];
+  const cols=[["n","Campaña"],["tend","ROAS diario"],["sp","Gasto"],["va","Valor conv."],["roas","ROAS"],["mg","Margen"],["cvr","Conv."],["cpa","CPA"],["ticket","Ticket"],["ctr","CTR"],["cpc","CPC"],["pu","Compras"]];
   const filas=cur.c.map(x=>{
     const c=CAMPS.get(x.k);
     return {k:x.k,n:c.n,p:c.p,sp:x.sp,va:x.va,pu:x.pu,
@@ -896,10 +911,10 @@ function render(){
   let h='<thead><tr>'+cols.map(k=>'<th data-k="'+k[0]+'">'+k[1]+'</th>').join("")+'</tr></thead><tbody>';
   filas.forEach(x=>{
     const s=porC.get(x.k);
-    const sv=cur.unit==="día"&&s?fechas.map(f=>s.get(f)?s.get(f)[0]:0):[];
+    const sv=cur.unit==="día"&&s?fechas.map(f=>{const v=s.get(f);return v&&v[0]?v[1]/v[0]:null}):[];
     h+='<tr class="clic'+(foco===x.k?" foco":"")+'" data-k="'+x.k+'">'+
        '<td><span class="bdg '+x.p+'">'+(x.p==="meta"?"M":"G")+'</span> '+x.n+'</td>'+
-       '<td>'+(sv.length>1?sparkline(sv,x.roas>=be?POS:NEG):"")+'</td>'+
+       '<td>'+sparkline(sv,x.roas>=be?POS:NEG,be)+'</td>'+
        '<td>'+clp(x.sp)+'</td><td>'+clp(x.va)+'</td>'+
        '<td class="'+(x.roas>=be?"good":"bad")+'">'+x.roas.toFixed(2)+'x</td>'+
        '<td class="'+(x.mg>=0?"good":"bad")+'">'+clp(x.mg)+'</td>'+
@@ -923,10 +938,13 @@ function render(){
 
   document.getElementById("pie").innerHTML=
     "GitHub vuelve a leer Meta y Google y publica los datos solo; el botón “Actualizar datos” relee lo último publicado, sin caché. "+
-    "Los rangos que empiezan antes del "+fmt(iso(dstart))+" usan la serie semanal, que agrupa por semanas completas y puede desbordar los bordes del rango; la tendencia por campaña y el mapa de calor solo se dibujan sobre la serie diaria. "+
+    "Los rangos que empiezan antes del "+fmt(iso(dstart))+" usan la serie semanal, que agrupa por semanas completas y puede desbordar los bordes del rango; la curva de ROAS diario por campaña y el mapa de calor solo se dibujan sobre la serie diaria. "+
     "Ojo al sumar plataformas: Meta atribuye a 7 días clic / 1 día visualización y Google usa su propio modelo, así que una misma venta puede quedar contada en las dos y el valor combinado no cuadra con la venta real de Shopify. "+
     "El día en curso viene incompleto: ambas plataformas registran el gasto antes que las conversiones.";
 }
+
+const cabecera=document.getElementById("top");
+addEventListener("scroll",()=>{cabecera.classList.toggle("fijo",window.scrollY>12)},{passive:true});
 
 (async()=>{
   try{
